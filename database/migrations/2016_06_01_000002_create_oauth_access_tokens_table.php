@@ -13,13 +13,22 @@ return new class extends Migration
     {
         Schema::create('oauth_access_tokens', function (Blueprint $table) {
             $table->string('id', 100)->primary();
+
+            // user_id puede ser null (tokens de client credentials)
             $table->unsignedBigInteger('user_id')->nullable()->index();
-            $table->unsignedBigInteger('client_id');
+
+            // Mejora: index para acelerar consultas por cliente
+            $table->unsignedBigInteger('client_id')->index();
+
             $table->string('name')->nullable();
             $table->text('scopes')->nullable();
-            $table->boolean('revoked');
+
+            // Mejora: valor por defecto para evitar estados indefinidos
+            $table->boolean('revoked')->default(false);
+
             $table->timestamps();
             $table->dateTime('expires_at')->nullable();
+
         });
     }
 

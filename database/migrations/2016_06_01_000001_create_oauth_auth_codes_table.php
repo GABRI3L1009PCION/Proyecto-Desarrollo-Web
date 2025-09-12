@@ -13,11 +13,20 @@ return new class extends Migration
     {
         Schema::create('oauth_auth_codes', function (Blueprint $table) {
             $table->string('id', 100)->primary();
+
+            // Índices para consultas rápidas
             $table->unsignedBigInteger('user_id')->index();
-            $table->unsignedBigInteger('client_id');
+            $table->unsignedBigInteger('client_id')->index();
+
             $table->text('scopes')->nullable();
-            $table->boolean('revoked');
+
+            // Mejora: valor por defecto para evitar estados indefinidos
+            $table->boolean('revoked')->default(false);
+
             $table->dateTime('expires_at')->nullable();
+
+            // (Opcional) índice compuesto si consultas por ambos con frecuencia
+            $table->index(['user_id', 'client_id'], 'oauth_auth_codes_user_client_idx');
         });
     }
 

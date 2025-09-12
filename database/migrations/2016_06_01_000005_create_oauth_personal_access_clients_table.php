@@ -13,8 +13,15 @@ return new class extends Migration
     {
         Schema::create('oauth_personal_access_clients', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('client_id');
+
+            // Relación con oauth_clients
+            $table->unsignedBigInteger('client_id')->index();
+
             $table->timestamps();
+
+            $table->foreign('client_id')
+                ->references('id')->on('oauth_clients')
+                ->cascadeOnDelete();
         });
     }
 
@@ -23,6 +30,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('oauth_personal_access_clients', function (Blueprint $table) {
+            $table->dropForeign(['client_id']);
+        });
+
         Schema::dropIfExists('oauth_personal_access_clients');
     }
 };

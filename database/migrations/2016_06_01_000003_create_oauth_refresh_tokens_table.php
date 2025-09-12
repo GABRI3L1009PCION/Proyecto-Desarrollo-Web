@@ -13,9 +13,19 @@ return new class extends Migration
     {
         Schema::create('oauth_refresh_tokens', function (Blueprint $table) {
             $table->string('id', 100)->primary();
+
+            // Enlazado al access token
             $table->string('access_token_id', 100)->index();
-            $table->boolean('revoked');
+
+            // Evitar estados indefinidos
+            $table->boolean('revoked')->default(false);
+
             $table->dateTime('expires_at')->nullable();
+
+            // Foreign key directa a oauth_access_tokens
+            $table->foreign('access_token_id')
+                ->references('id')->on('oauth_access_tokens')
+                ->cascadeOnDelete();
         });
     }
 
@@ -24,6 +34,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('oauth_refresh_tokens', function (Blueprint $table) {
+            $table->dropForeign(['access_token_id']);
+        });
+
         Schema::dropIfExists('oauth_refresh_tokens');
     }
 };

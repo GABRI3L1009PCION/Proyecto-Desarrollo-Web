@@ -13,13 +13,19 @@ return new class extends Migration
     {
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
+
+            // Relación polimórfica (ej: users, otros modelos)
             $table->morphs('tokenable');
+
             $table->string('name');
             $table->string('token', 64)->unique();
             $table->text('abilities')->nullable();
             $table->timestamp('last_used_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
+
+            // Mejora: índice para tokens caducados
+            $table->index('expires_at', 'pat_expires_at_idx');
         });
     }
 

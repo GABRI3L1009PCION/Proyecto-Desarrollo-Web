@@ -15,6 +15,9 @@ return new class extends Migration
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
+
+            // Mejora opcional: índice para acelerar limpiezas de tokens expirados
+            $table->index('created_at', 'password_reset_created_idx');
         });
     }
 

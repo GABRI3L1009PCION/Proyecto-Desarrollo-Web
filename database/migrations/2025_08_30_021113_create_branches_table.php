@@ -9,7 +9,10 @@ return new class extends Migration {
         if (!Schema::hasTable('branches')) {
             Schema::create('branches', function (Blueprint $table) {
                 $table->id();
-                $table->string('nombre', 255);
+
+                // Evitar nombres de sucursal duplicados
+                $table->string('nombre', 255)->unique();
+
                 $table->string('direccion', 255)->nullable();
                 $table->string('telefono', 30)->nullable();
                 $table->timestamps();

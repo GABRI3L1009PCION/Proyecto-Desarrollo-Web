@@ -15,10 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('uuid')->unique();
             $table->text('connection');
-            $table->text('queue');
+
+            // Cambiado de text a string(191) para permitir índice
+            $table->string('queue', 191);
+
             $table->longText('payload');
             $table->longText('exception');
             $table->timestamp('failed_at')->useCurrent();
+
+            // Índice válido en queue
+            $table->index('queue', 'failed_jobs_queue_idx');
         });
     }
 

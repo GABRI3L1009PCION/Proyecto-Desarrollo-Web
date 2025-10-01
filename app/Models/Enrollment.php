@@ -2,13 +2,31 @@
 // app/Models/Enrollment.php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Enrollment extends Model
 {
-    protected $table = 'enrollments';
-    protected $fillable = ['student_id','offering_id','estado'];
+    use HasFactory;
 
-    public function student()  { return $this->belongsTo(Student::class); }
-    public function offering() { return $this->belongsTo(Offering::class); }
+    protected $table = 'enrollments';
+
+    protected $fillable = [
+        'student_id',
+        'offering_id',
+        'status',
+        'fecha',
+    ];
+
+    // Relación con estudiante
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    // Relación con oferta (curso+docente+sede)
+    public function offering()
+    {
+        return $this->belongsTo(Offering::class);
+    }
 }

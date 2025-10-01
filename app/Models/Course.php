@@ -2,12 +2,25 @@
 // app/Models/Course.php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
-    protected $table = 'courses';
-    protected $fillable = ['nombre','descripcion','horas','estado'];
+    use HasFactory;
 
-    public function offerings() { return $this->hasMany(Offering::class); }
+    protected $table = 'courses';
+
+    protected $fillable = [
+        'codigo',
+        'nombre',
+        'creditos',
+        'descripcion',
+    ];
+
+    // Relación: un curso puede tener muchas ofertas
+    public function offerings()
+    {
+        return $this->hasMany(Offering::class);
+    }
 }

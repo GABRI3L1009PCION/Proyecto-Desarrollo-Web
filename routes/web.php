@@ -1,22 +1,43 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AdminPanelController;
+use App\Http\Controllers\AuthController;
 
-Route::get('/', fn () => redirect()->route('admin.panel'));
+/*
+|--------------------------------------------------------------------------
+| Rutas Web
+|--------------------------------------------------------------------------
+*/
 
-Route::get('/admin', [AdminPanelController::class, 'index'])
-    // ->middleware('auth') // actívalo si luego tendrás login web
-    ->name('admin.panel');
+// Redirige raíz hacia login
+Route::get('/', function () {
+    return redirect()->route('login.view');
+});
 
-// Ruta de logout para que exista route('logout')
+// =========================
+//  VISTAS DE AUTENTICACIÓN
+// =========================
+Route::view('/login', 'auth.login')->name('login.view');
+Route::view('/register', 'auth.register')->name('register.view');
+
+// =========================
+//  DASHBOARD / PANELES
+// =========================
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->name('dashboard');
+
+// Panel de administrador
+Route::get('/admin', [AdminPanelController::class, 'index'])->name('admin.panel');
+
+// =========================
+//  LOGOUT
+// =========================
 Route::post('/logout', function () {
-    // Si no usas auth web aún, no pasa nada por llamarlo
-    Auth::guard('web')->logout();
-
+    auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
 
-    return redirect()->route('admin.panel');
+    return redirect()->route('login.view');
 })->name('logout');

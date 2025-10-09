@@ -10,10 +10,10 @@ use App\Http\Controllers\AuthController;
 |--------------------------------------------------------------------------
 */
 
-// Redirige raíz hacia login
+// Página de presentación principal
 Route::get('/', function () {
-    return redirect()->route('login.view');
-});
+    return view('welcome'); // 👈 ahora muestra tu pantalla de inicio animada
+})->name('welcome');
 
 // =========================
 //  VISTAS DE AUTENTICACIÓN

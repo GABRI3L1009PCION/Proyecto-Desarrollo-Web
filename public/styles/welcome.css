@@ -1,0 +1,237 @@
+/* =======================================================
+   🎨 VARIABLES GLOBALES
+   ======================================================= */
+:root {
+    --bg1:#081a3b;--bg2:#0d2b61;
+    --primary:#2f5dff;--primary-light:#3b6dff;
+    --text:#fff;--muted:#b0b8c2;
+    --radius:12px;font-family:"Poppins",sans-serif;
+}
+html{scroll-behavior:smooth;}
+
+/* =======================================================
+   🌌 FONDO Y ANIMACIÓN BASE
+   ======================================================= */
+body {
+    margin:0;padding:0;color:var(--text);
+    background:linear-gradient(120deg,var(--bg1),var(--bg2));
+    background-size:200% 200%;
+    animation:bgMove 18s ease-in-out infinite;
+    overflow-x:hidden;
+}
+@keyframes bgMove {
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+}
+
+/* =======================================================
+   🦋 SECCIÓN HERO PRINCIPAL
+   ======================================================= */
+.hero {
+    position:relative;min-height:100vh;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;overflow:hidden;
+    background:
+        radial-gradient(circle at 30% 70%,rgba(47,93,255,.12),transparent 60%),
+        radial-gradient(circle at 80% 20%,rgba(255,255,255,.05),transparent 70%);
+}
+.overlay {
+    position:absolute;inset:0;
+    background:rgba(0,0,0,.3);
+    backdrop-filter:blur(4px);
+    z-index:1;
+}
+
+/* ===== Partículas suaves ===== */
+.hero::before {
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1px);
+    background-size:70px 70px;
+    animation:moveParticles 25s linear infinite;
+    z-index:0;
+}
+@keyframes moveParticles {
+    0%{background-position:0 0;}
+    100%{background-position:200px 200px;}
+}
+
+/* ===== Contenido central ===== */
+.hero-content {
+    position:relative;z-index:2;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    gap:.6rem;opacity:0;
+    animation:fadeInSmooth 1.5s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes fadeInSmooth {
+    0%{opacity:0;transform:translateY(40px) scale(.97);}
+    60%{opacity:1;transform:translateY(-4px) scale(1.02);}
+    100%{opacity:1;transform:translateY(0) scale(1);}
+}
+
+/* =======================================================
+   🎓 LOGO Y TÍTULOS
+   ======================================================= */
+.logo {
+    width:200px;margin-bottom:.6rem;
+    filter:drop-shadow(0 0 12px rgba(47,93,255,.6));
+    animation:pulse 4s ease-in-out infinite alternate;
+}
+@keyframes pulse {
+    0%{filter:drop-shadow(0 0 5px rgba(47,93,255,.3));}
+    100%{filter:drop-shadow(0 0 18px rgba(47,93,255,.9));}
+}
+.title {
+    font-size:2.6rem;font-weight:700;margin:0;
+    text-shadow:0 0 8px rgba(47,93,255,.5);
+}
+.subtitle {
+    color:var(--muted);margin-top:.5rem;
+    font-size:1rem;max-width:550px;margin:auto;
+}
+
+/* =======================================================
+   🔘 BOTÓN PRINCIPAL
+   ======================================================= */
+.btn-enter {
+    margin-top:2rem;padding:.9rem 2.3rem;
+    border:none;border-radius:var(--radius);
+    background:linear-gradient(90deg,var(--primary),var(--primary-light));
+    color:#fff;font-weight:600;font-size:1rem;
+    cursor:pointer;transition:all .3s ease;
+    box-shadow:0 0 20px rgba(47,93,255,.4);
+}
+.btn-enter:hover {
+    transform:scale(1.07);
+    box-shadow:0 0 30px rgba(47,93,255,.8);
+}
+
+/* =======================================================
+   ⬇️ INDICADOR DE SCROLL (FIJO EN LA SECCIÓN HERO)
+   ======================================================= */
+.scroll-indicator {
+    position:absolute;          /* ahora relativo al contenedor .hero */
+    bottom:40px;                /* bien separado del borde inferior del hero */
+    left:45.5%;                   /* centrado horizontal */
+    transform:translateX(-50%); /* corrección exacta de centrado */
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    color:var(--muted);
+    cursor:pointer;
+    opacity:0;
+    z-index:3;                  /* sobre el overlay pero debajo del contenido */
+    animation:fadeInSmooth 1.5s 1.3s ease forwards;
+    transition:opacity .4s ease,transform .3s ease;
+}
+
+.scroll-indicator span {
+    font-size:.9rem;
+    opacity:.85;
+    letter-spacing:.5px;
+    text-shadow:0 0 4px rgba(0,0,0,.3);
+}
+
+.scroll-indicator i {
+    font-size:1.6rem;
+    color:var(--primary-light);
+    filter:drop-shadow(0 0 6px rgba(47,93,255,.8));
+    animation:
+        arrowBounce 1.8s cubic-bezier(0.42,0,0.58,1) infinite,
+        glowPulse 2.4s ease-in-out infinite alternate;
+}
+
+/* ===== Animaciones suaves de la flecha ===== */
+@keyframes arrowBounce {
+    0%,100% { transform:translateY(0); opacity:.75; }
+    50% { transform:translateY(10px); opacity:1; }
+}
+
+@keyframes glowPulse {
+    from { filter:drop-shadow(0 0 6px rgba(47,93,255,.6)); }
+    to { filter:drop-shadow(0 0 14px rgba(47,93,255,1)); }
+}
+
+
+/* =======================================================
+   💡 SECCIONES INFORMATIVAS
+   ======================================================= */
+section {padding:4rem 1.5rem;text-align:center;}
+.about,.vision {background:rgba(255,255,255,.05);}
+.about p,.vision p {
+    max-width:700px;margin:auto;
+    color:var(--muted);line-height:1.6;
+}
+h2 {
+    font-size:1.8rem;font-weight:600;
+    margin-bottom:1.5rem;
+    color:var(--primary-light);
+}
+
+/* =======================================================
+   🧩 FUNCIONALIDADES
+   ======================================================= */
+.feature-grid {
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:2rem;margin-top:2rem;
+}
+.feature-item {
+    background:rgba(255,255,255,.05);
+    border-radius:var(--radius);
+    padding:1.5rem;border:1px solid rgba(255,255,255,.06);
+    transition:.3s ease;
+}
+.feature-item:hover {
+    transform:translateY(-6px);
+    box-shadow:0 10px 20px rgba(0,0,0,.25);
+}
+.feature-item i {
+    font-size:2rem;color:var(--primary-light);
+    margin-bottom:.5rem;
+}
+
+/* =======================================================
+   ⚙️ TECNOLOGÍAS
+   ======================================================= */
+.tech-icons {
+    display:flex;justify-content:center;
+    flex-wrap:wrap;gap:2rem;margin-top:2rem;
+}
+.tech-icons div {
+    display:flex;flex-direction:column;
+    align-items:center;gap:.5rem;
+    color:var(--muted);font-weight:500;
+    transition:.3s ease;
+}
+.tech-icons div:hover {
+    color:var(--primary-light);
+    transform:scale(1.1);
+}
+.tech-icons img {
+    width:60px;height:60px;
+    filter:drop-shadow(0 0 6px rgba(47,93,255,.4));
+}
+
+/* =======================================================
+   🧾 FOOTER
+   ======================================================= */
+footer {
+    text-align:center;padding:1.5rem 0;
+    color:var(--muted);font-size:.9rem;
+    background:rgba(0,0,0,.2);
+}
+footer strong {color:var(--primary-light);}
+
+/* =======================================================
+   📱 RESPONSIVE
+   ======================================================= */
+@media(max-width:768px){
+    .title{font-size:2.1rem;}
+    .subtitle{font-size:.9rem;width:90%;}
+    .btn-enter{padding:.8rem 1.8rem;}
+    .feature-grid{gap:1.5rem;}
+    .scroll-indicator span{display:none;}
+}

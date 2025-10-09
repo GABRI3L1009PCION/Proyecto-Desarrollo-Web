@@ -1,0 +1,112 @@
+/* =======================================================
+   💡 CÓDIGO RAPIDITO — LOGIN CREATIVO
+   Estilo animado, con profundidad y atmósfera moderna.
+   ======================================================= */
+:root{
+    --bg1:#081A3B;--bg2:#0D2B61;
+    --primary:#2F5DFF;--primary-light:#3B6DFF;
+    --text:#fff;--text-muted:#B0B8C2;--error:#FF5C5C;
+    --radius:12px;--blur:12px;
+    font-family:"Poppins",sans-serif;
+}
+
+/* === ANIMACIONES === */
+@keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 10px rgba(255,255,255,.4)) drop-shadow(0 0 25px rgba(47,93,255,.2))}50%{filter:drop-shadow(0 0 20px rgba(255,255,255,.8)) drop-shadow(0 0 40px rgba(47,93,255,.6))}}
+@keyframes moveWaves{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes particles{0%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.1)}100%{transform:translateY(0) scale(1)}}
+
+/* === FONDO ANIMADO === */
+body{
+    margin:0;padding:0;min-height:100vh;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(120deg,var(--bg1),var(--bg2),#102A6E);
+    background-size:200% 200%;
+    animation:moveWaves 12s ease-in-out infinite;
+    color:var(--text);
+}
+
+/* === EFECTO DE ONDAS FLUIDAS === */
+body::before,body::after{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(circle at 20% 80%,rgba(47,93,255,.2) 0%,transparent 60%),
+    radial-gradient(circle at 80% 20%,rgba(255,255,255,.15) 0%,transparent 70%);
+    animation:moveWaves 15s linear infinite;
+    z-index:0;
+}
+body::after{filter:blur(60px);opacity:.5;}
+
+/* === CONTENEDOR GENERAL === */
+.login-container{display:flex;flex-direction:column;align-items:center;gap:1.5rem;z-index:2;animation:fadeUp 1s ease forwards}
+
+/* === LOGO === */
+.logo-box{display:flex;justify-content:center;align-items:center;position:relative;animation:float 5s ease-in-out infinite}
+.logo{
+    width:130px;height:auto;animation:glowPulse 3.5s ease-in-out infinite;
+    filter:drop-shadow(0 0 10px rgba(255,255,255,.6)) drop-shadow(0 0 20px rgba(47,93,255,.4));
+}
+.logo::after{
+    content:"";position:absolute;bottom:-20px;width:100%;height:15px;
+    background:radial-gradient(circle,rgba(255,255,255,.2) 0%,transparent 70%);
+    filter:blur(6px);
+}
+
+/* === TARJETA PRINCIPAL === */
+.card{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.1);
+    padding:2rem;border-radius:var(--radius);
+    width:100%;max-width:380px;
+    box-shadow:0 8px 25px rgba(0,0,0,.35);
+    backdrop-filter:blur(var(--blur));
+    animation:fadeUp 1.2s ease .2s both;
+    transition:.4s;
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+
+/* === TEXTOS === */
+h3{text-align:center;color:var(--text);font-weight:700;margin-bottom:1.5rem;letter-spacing:1px}
+label{font-weight:500;color:var(--text-muted);font-size:.9rem}
+p.text-center{color:var(--text-muted);margin-top:1rem;font-size:.9rem}
+a{color:var(--primary-light);text-decoration:none;font-weight:500;transition:.25s}
+a:hover{color:var(--primary);text-shadow:0 0 8px rgba(47,93,255,.5)}
+
+/* === INPUTS === */
+input{
+    background:rgba(16,39,80,.8);color:var(--text);
+    border:1px solid #1d335f;border-radius:var(--radius);
+    padding:.6rem .9rem;width:100%;margin-top:4px;outline:none;
+    transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+input:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 12px rgba(47,93,255,.6);
+    transform:scale(1.02);
+}
+
+/* === BOTÓN === */
+.btn{
+    display:block;width:100%;border:none;border-radius:var(--radius);
+    background:linear-gradient(90deg,var(--primary),var(--primary-light));
+    color:#fff;font-weight:600;font-size:1rem;
+    padding:.7rem;margin-top:.5rem;
+    background-size:200%;
+    transition:all .35s cubic-bezier(.4,0,.2,1);
+}
+.btn:hover{background-position:100%;transform:scale(1.03);box-shadow:0 0 15px rgba(47,93,255,.6)}
+
+/* === MENSAJES === */
+.msg{text-align:center;margin-top:1rem;font-weight:600;color:var(--error);min-height:20px;animation:fadeUp .5s ease}
+
+/* === PARTÍCULAS DECORATIVAS === */
+.particle{
+    position:absolute;width:8px;height:8px;border-radius:50%;
+    background:rgba(255,255,255,.15);filter:blur(2px);
+    animation:particles 6s ease-in-out infinite;
+}
+.particle:nth-child(1){top:20%;left:10%;animation-delay:0s}
+.particle:nth-child(2){top:70%;left:80%;animation-delay:1s}
+.particle:nth-child(3){top:50%;left:30%;animation-delay:2s}
+.particle:nth-child(4){top:10%;left:70%;animation-delay:3s}
+.particle:nth-child(5){top:80%;left:40%;animation-delay:4s}

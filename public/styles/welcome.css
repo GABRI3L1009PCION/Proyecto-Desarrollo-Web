@@ -114,7 +114,7 @@ body {
 .scroll-indicator {
     position:absolute;          /* ahora relativo al contenedor .hero */
     bottom:40px;                /* bien separado del borde inferior del hero */
-    left:45.5%;                   /* centrado horizontal */
+    left:45.2%;                   /* centrado horizontal */
     transform:translateX(-50%); /* corrección exacta de centrado */
     display:flex;
     flex-direction:column;

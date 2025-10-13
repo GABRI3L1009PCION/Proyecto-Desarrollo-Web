@@ -5,14 +5,14 @@
     <link rel="stylesheet" href="{{ asset('styles/register.css') }}">
     <script src="https://kit.fontawesome.com/6e7086f99f.js" crossorigin="anonymous"></script>
 
-    <!-- === PARTÍCULAS DECORATIVAS === -->
+    <!-- ✨ Partículas decorativas -->
     <div class="particle"></div>
     <div class="particle"></div>
     <div class="particle"></div>
     <div class="particle"></div>
     <div class="particle"></div>
 
-    <!-- === CONTENEDOR PRINCIPAL === -->
+    <!-- 🧩 Contenedor principal -->
     <div class="register-container">
         <div class="logo-box">
             <img src="{{ asset('images/logo.png') }}" alt="Código Rapidito" class="logo">
@@ -21,8 +21,9 @@
         <div class="card">
             <h3>CREA TU CUENTA</h3>
 
-            <!-- === FORMULARIO DE REGISTRO === -->
-            <form id="registerForm" class="form-grid">@csrf
+            <!-- 🪄 Formulario de registro -->
+            <form id="registerForm" class="form-grid">
+                @csrf
 
                 <!-- 🔹 Fila 1: Nombre y correo -->
                 <div class="form-row">
@@ -36,7 +37,7 @@
                     </div>
                 </div>
 
-                <!-- 🔹 Fila 2: Contraseñas más anchas -->
+                <!-- 🔹 Fila 2: Contraseñas -->
                 <div class="form-row full">
                     <div class="form-group">
                         <label for="password">CONTRASEÑA</label>
@@ -61,10 +62,11 @@
         </div>
     </div>
 
-    <!-- === SCRIPT DE REGISTRO === -->
+    <!-- 🧠 Script de registro -->
     <script>
         document.getElementById('registerForm').addEventListener('submit', async e => {
             e.preventDefault();
+
             const msg = document.getElementById('registerMessage');
             msg.style.color = 'var(--text-muted)';
             msg.textContent = 'Registrando...';
@@ -87,17 +89,18 @@
                 });
 
                 const json = await res.json();
+
                 if (res.ok) {
                     msg.style.color = 'var(--success)';
-                    msg.textContent = 'Registro exitoso. Redirigiendo...';
-                    setTimeout(() => window.location.href = '/login', 1500);
+                    msg.textContent = '✅ Registro exitoso. Redirigiendo al login...';
+                    setTimeout(() => window.location.href = '/login', 1800);
                 } else {
                     msg.style.color = 'var(--error)';
-                    msg.textContent = json.message || 'Error en el registro';
+                    msg.textContent = json.message || '❌ Error en el registro. Revisa tus datos.';
                 }
             } catch (err) {
                 msg.style.color = 'var(--error)';
-                msg.textContent = 'Error de conexión con el servidor.';
+                msg.textContent = '⚠️ Error de conexión con el servidor.';
             }
         });
     </script>

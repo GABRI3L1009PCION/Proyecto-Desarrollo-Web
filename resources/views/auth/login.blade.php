@@ -20,43 +20,35 @@
         <!-- 🪟 Tarjeta de login -->
         <div class="card">
             <h3>INICIAR SESIÓN</h3>
-            <form id="loginForm">@csrf
+
+            <!-- Formulario normal (usa loginWeb del AuthController) -->
+            <form action="{{ route('login.submit') }}" method="POST">
+                @csrf
                 <div class="mb-3">
                     <label for="email">CORREO ELECTRÓNICO</label>
-                    <input type="email" id="email" required autocomplete="off">
+                    <input type="email" name="email" id="email" required autocomplete="off"
+                           value="{{ old('email') }}">
                 </div>
+
                 <div class="mb-3">
                     <label for="password">CONTRASEÑA</label>
-                    <input type="password" id="password" required>
+                    <input type="password" name="password" id="password" required>
                 </div>
-                <button class="btn">INGRESAR</button>
-                <p class="text-center">¿NO TIENES UNA CUENTA? <a href="{{ url('/register') }}">REGÍSTRATE</a></p>
+
+                <!-- Mensaje de error si las credenciales son incorrectas -->
+                @if ($errors->any())
+                    <div class="alert alert-danger text-center" style="font-size: 0.9rem;">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+
+                <button type="submit" class="btn">INGRESAR</button>
+
+                <p class="text-center">
+                    ¿NO TIENES UNA CUENTA?
+                    <a href="{{ url('/register') }}">REGÍSTRATE</a>
+                </p>
             </form>
-            <div id="loginMessage" class="msg"></div>
         </div>
     </div>
-
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async e=>{
-            e.preventDefault();
-            const email=document.getElementById('email').value.trim();
-            const password=document.getElementById('password').value.trim();
-            const msg=document.getElementById('loginMessage');
-            msg.textContent='Verificando...';
-            try{
-                const res=await fetch("{{ url('api/v1/auth/login') }}",{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json','Accept':'application/json'},
-                    body:JSON.stringify({email,password})
-                });
-                const data=await res.json();
-                if(res.ok){
-                    localStorage.setItem('token',data.token);
-                    window.location.href='/dashboard';
-                }else msg.textContent=data.message||'Credenciales inválidas';
-            }catch{
-                msg.textContent='Error de conexión con el servidor.';
-            }
-        });
-    </script>
 @endsection

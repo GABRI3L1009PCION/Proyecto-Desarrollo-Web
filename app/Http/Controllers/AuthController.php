@@ -9,14 +9,16 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    /** Registro de usuario */
+    /** ============================================
+     * 🧩 REGISTRO DE USUARIO (API)
+     * ============================================ */
     public function register(Request $r)
     {
         $data = $r->validate([
             'name'      => 'required|string|max:100',
             'email'     => 'required|email|unique:users,email',
             'password'  => 'required|min:8|confirmed',
-            'role'      => 'in:admin,catedratico,estudiante,secretaria', // opcional
+            'role'      => 'in:admin,catedratico,estudiante,secretaria',
             'branch_id' => 'nullable|exists:branches,id',
         ]);
 
@@ -34,7 +36,9 @@ class AuthController extends Controller
         ], 201);
     }
 
-    /** Login */
+    /** ============================================
+     * 🔐 LOGIN PARA API (devuelve JSON con token)
+     * ============================================ */
     public function login(Request $r)
     {
         $r->validate([
@@ -46,7 +50,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Credenciales inválidas'], 401);
         }
 
-        $user  = Auth::user()->load('branch'); // incluye branch
+        $user  = Auth::user()->load('branch');
         $token = $user->createToken('api-academia')->accessToken;
 
         return response()->json([
@@ -56,16 +60,62 @@ class AuthController extends Controller
         ]);
     }
 
-    /** Usuario autenticado */
+    /** ============================================
+     * 🌐 LOGIN PARA WEB (redirección según rol)
+     * ============================================ */
+    public function loginWeb(Request $r)
+    {
+        $r->validate([
+            'email'    => 'required|email',
+            'password' => 'required'
+        ]);
+
+        if (!Auth::attempt($r->only('email', 'password'))) {
+            return back()->withErrors(['email' => 'Credenciales inválidas'])->withInput();
+        }
+
+        $user = Auth::user();
+
+        // 🔁 Redirección según rol (rutas actualizadas)
+        switch ($user->role) {
+            case 'admin':
+                return redirect('/administrador/panel');
+            case 'catedratico':
+                return redirect('/catedratico/panel');
+            case 'estudiante':
+                return redirect('/estudiante/panel');
+            case 'secretaria':
+                return redirect('/secretaria/panel');
+            default:
+                Auth::logout();
+                return redirect('/login')->withErrors(['role' => 'Rol no válido']);
+        }
+    }
+
+    /** ============================================
+     * 👤 USUARIO AUTENTICADO (API)
+     * ============================================ */
     public function me(Request $r)
     {
         return response()->json($r->user()->load('branch'));
     }
 
-    /** Logout */
+    /** ============================================
+     * 🚪 LOGOUT (API y Web)
+     * ============================================ */
     public function logout(Request $r)
     {
-        $r->user()->token()->revoke();
-        return response()->json(['message' => 'Sesión cerrada']);
+        // Si es API (token)
+        if ($r->user() && $r->user()->token()) {
+            $r->user()->token()->revoke();
+            return response()->json(['message' => 'Sesión cerrada']);
+        }
+
+        // Si es Web (sesión)
+        Auth::logout();
+        $r->session()->invalidate();
+        $r->session()->regenerateToken();
+
+        return redirect('/login');
     }
 }

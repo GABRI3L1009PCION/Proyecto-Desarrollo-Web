@@ -1,0 +1,223 @@
+/* =======================================================
+ 💎 ADMIN — MODALES PREMIUM v7
+ Animaciones suaves, blur moderno, inputs accesibles
+ y sin delay al cerrar.
+========================================================= */
+
+/* === OVERLAY === */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(3,10,30,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(1.05);
+    transition: opacity .4s ease, transform .4s ease, visibility .4s ease;
+}
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+/* === MODAL CONTENEDOR === */
+.modal-content {
+    background: linear-gradient(145deg, rgba(8,26,59,.95), rgba(13,43,97,.92));
+    border-radius: 16px;
+    padding: 2rem;
+    width: 420px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    transform: translateY(-25px);
+    opacity: 0;
+    transition: opacity .4s ease, transform .4s ease;
+}
+.modal-overlay.show .modal-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ✨ Animación real de cierre */
+.modal-content.closing {
+    animation: modalFadeOut .35s ease forwards;
+}
+@keyframes modalFadeOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(-20px) scale(0.97); }
+}
+
+/* === TÍTULOS === */
+.modal-content h3 {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    color: var(--primary-light);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 6px rgba(59,109,255,.4);
+}
+
+/* === FORMULARIO === */
+.form-modal {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+}
+.form-modal label {
+    font-size: .9rem;
+    color: var(--muted);
+}
+.form-modal input,
+.form-modal select {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: .65rem .9rem;
+    font-size: .9rem;
+    outline: none;
+    transition: all .3s ease;
+}
+.form-modal input:focus,
+.form-modal select:focus {
+    border-color: var(--primary-light);
+    background: rgba(255,255,255,.12);
+    box-shadow: 0 0 8px rgba(47,93,255,.5);
+    transform: scale(1.02);
+}
+
+/* === SELECT PERSONALIZADO === */
+.form-modal select {
+    appearance: none;
+    background-color: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 0.65rem 2rem 0.65rem 0.9rem;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23ffffff' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    background-size: 1rem;
+}
+.form-modal select:hover {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 6px rgba(47,93,255,.4);
+}
+.form-modal select:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 10px rgba(47,93,255,.6);
+    transform: scale(1.02);
+    background-position: right 0.9rem center; /* evita salto */
+}
+.form-modal select option {
+    background: #0d2b61;
+    color: #fff;
+    transition: background 0.2s ease;
+}
+.form-modal select option:hover {
+    background: #1c3d9c;
+}
+
+/* === BOTONES === */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .8rem;
+    margin-top: 1.4rem;
+}
+
+/* Guardar / Actualizar */
+.btn-confirm {
+    background: linear-gradient(90deg, var(--primary-light), var(--primary));
+    color: #fff;
+    border: none;
+    padding: .6rem 1.3rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .3s ease;
+    box-shadow: 0 0 12px rgba(47,93,255,.4);
+}
+.btn-confirm:hover {
+    background: linear-gradient(90deg, var(--primary), #1a3dff);
+    transform: translateY(-2px);
+}
+
+/* Cancelar */
+.btn-cancel {
+    background: rgba(255,255,255,.1);
+    color: var(--muted);
+    border: 1px solid rgba(255,255,255,.15);
+    padding: .6rem 1.2rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all .3s ease;
+}
+.btn-cancel:hover {
+    background: rgba(255,255,255,.25);
+    color: var(--text);
+    transform: translateY(-2px);
+}
+
+/* Eliminar */
+.btn-danger {
+    background: linear-gradient(90deg, #ff3d3d, #e00);
+    color: #fff;
+    border: none;
+    padding: .6rem 1.3rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .3s ease;
+}
+.btn-danger:hover {
+    background: linear-gradient(90deg, #e43f3f, #c60000);
+    transform: translateY(-2px);
+}
+
+/* === ALERTAS === */
+.alert {
+    position: fixed;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: .9rem 1.6rem;
+    border-radius: var(--radius);
+    color: #fff;
+    font-weight: 500;
+    z-index: 10000;
+    box-shadow: 0 4px 14px rgba(0,0,0,.35);
+    animation: fadeInOut 4s ease forwards;
+}
+.alert.success { background: #3CCF91; }
+.alert.error { background: #FF5C5C; }
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -20px); }
+    10%,90% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -20px); }
+}
+
+/* === RESPONSIVE === */
+@media (max-width:500px){
+    .modal-content {
+        width: 90%;
+        padding: 1.5rem;
+    }
+}
+/* === TEXTO DEL MODAL === */
+.modal-content p {
+    color: rgba(255,255,255,0.85); /* texto claro visible */
+    font-size: .95rem;
+    line-height: 1.5;
+    margin-top: -.3rem;
+}

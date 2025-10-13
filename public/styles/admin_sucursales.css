@@ -1,0 +1,197 @@
+/* =======================================================
+ 💡 ADMIN — SUCURSALES FINAL
+ Paleta azul translúcida + coherente con usuarios
+========================================================= */
+
+.sucursales-section {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    animation: fadeUp .5s ease;
+    margin-top: 1.5rem;
+}
+
+/* === ANIMACIÓN === */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* === ENCABEZADO Y CONTROLES === */
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.3rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.header-actions h3 {
+    color: var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.header-actions i {
+    color: var(--primary-light);
+}
+
+/* === GRUPO DE CONTROLES DERECHA === */
+.actions-right {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .8rem;
+}
+
+.actions-right input,
+.actions-right select {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text);
+    padding: .5rem .8rem;
+    border-radius: 8px;
+    font-size: .9rem;
+    outline: none;
+    transition: all .3s ease;
+}
+
+.actions-right input::placeholder {
+    color: var(--muted);
+}
+
+.actions-right input:focus,
+.actions-right select:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 6px var(--primary-light);
+    background: rgba(255,255,255,0.12);
+}
+
+.actions-right select option {
+    background: var(--bg2);
+    color: var(--text);
+}
+
+/* === BOTÓN NUEVA SUCURSAL === */
+.btn-new {
+    background: var(--primary-light);
+    color: #fff;
+    border: none;
+    padding: .7rem 1.3rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    transition: all .3s ease;
+    font-size: .9rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+}
+.btn-new:hover {
+    background: var(--primary);
+    transform: scale(1.05);
+}
+
+/* === TABLA === */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+    background: transparent; /* 👈 transparente, no duplicamos el fondo */
+    font-size: .95rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+}
+.data-table th,
+.data-table td {
+    padding: 1rem 1.2rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.data-table th {
+    color: var(--primary-light);
+    text-transform: uppercase;
+    font-size: .85rem;
+    letter-spacing: .5px;
+    background: rgba(255,255,255,0.05);
+}
+.data-table tr:hover {
+    background: rgba(255,255,255,0.06);
+    transition: background .3s ease;
+}
+
+/* === BOTONES DE ACCIÓN === */
+.acciones {
+    display: flex;
+    gap: .6rem;
+    justify-content: center;
+}
+.acciones button {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: var(--text);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: .4rem .6rem;
+    border-radius: 8px;
+    transition: all .3s ease;
+}
+.acciones button:hover {
+    transform: scale(1.12);
+    background: rgba(255,255,255,0.18);
+}
+.acciones .btn-edit i { color: var(--primary-light); }
+.acciones .btn-delete i { color: #FF5C5C; }
+
+/* === ESTADO VACÍO === */
+.data-table tr td[colspan] {
+    text-align: center;
+    color: var(--muted);
+    padding: 1.2rem;
+}
+
+/* === RESPONSIVE === */
+@media(max-width: 1000px){
+    .header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .actions-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    .actions-right input, .actions-right select {
+        flex: 1;
+        min-width: 150px;
+    }
+    .data-table th, .data-table td {
+        font-size: .85rem;
+        padding: .6rem .8rem;
+    }
+    .btn-new {
+        align-self: flex-end;
+    }
+}
+
+@media(max-width: 600px){
+    .actions-right {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .actions-right input, .actions-right select {
+        width: 100%;
+    }
+}
+
+/* === ICONO DEL BOTÓN NUEVA SUCURSAL === */
+.btn-new i {
+    color: #fff !important;
+}

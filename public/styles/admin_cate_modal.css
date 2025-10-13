@@ -1,0 +1,275 @@
+/* =======================================================
+ 💎 ADMIN — MODAL ALUMNOS (v11)
+ Compacto, elegante y bien distribuido visualmente
+========================================================= */
+
+/* === OVERLAY === */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(3,10,30,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(1.05);
+    transition: opacity .4s ease, transform .4s ease, visibility .4s ease;
+}
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+/* === MODAL === */
+.modal-content {
+    background: linear-gradient(145deg, rgba(8,26,59,.95), rgba(13,43,97,.92));
+    border-radius: 16px;
+    padding: 1.8rem 2rem;
+    width: 640px;
+    box-shadow: 0 10px 35px rgba(0,0,0,.55);
+    transform: translateY(-25px);
+    opacity: 0;
+    transition: opacity .4s ease, transform .4s ease;
+}
+.modal-overlay.show .modal-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* === TÍTULO === */
+.modal-content h3 {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    color: var(--primary-light);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 1.4rem;
+    text-shadow: 0 0 6px rgba(59,109,255,.4);
+}
+
+/* === FORMULARIO ORGANIZADO === */
+.form-modal {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem 1.2rem;
+}
+
+/* Etiquetas */
+.form-modal label {
+    display: block;
+    font-size: .88rem;
+    color: var(--muted);
+    margin-bottom: .25rem;
+}
+
+/* Inputs / Selects */
+.form-modal input,
+.form-modal select {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 10px;
+    color: var(--text);
+    padding: .6rem .9rem;
+    font-size: .9rem;
+    outline: none;
+    width: 100%;
+    transition: all .25s ease;
+}
+.form-modal input:focus,
+.form-modal select:focus {
+    border-color: var(--primary-light);
+    background: rgba(255,255,255,.12);
+    box-shadow: 0 0 8px rgba(47,93,255,.5);
+    transform: scale(1.01);
+}
+
+/* === SELECT PERSONALIZADO === */
+.form-modal select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23ffffff' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right .9rem center;
+    background-size: 1rem;
+    cursor: pointer;
+}
+.form-modal select option {
+    background: #0d2b61;
+    color: #fff;
+}
+
+/* === CAMPOS GRANDES === */
+.form-modal select[name="user_id"],
+.form-modal input[name="nombres"],
+.form-modal select[name="branch_id"] {
+    grid-column: span 2;
+}
+
+/* === BOTONES === */
+.modal-actions {
+    grid-column: span 2;
+    display: flex;
+    justify-content: flex-end;
+    gap: .8rem;
+    margin-top: .8rem;
+}
+
+/* === BOTONES ESTILO === */
+.btn-confirm {
+    background: linear-gradient(90deg, var(--primary-light), var(--primary));
+    color: #fff;
+    border: none;
+    padding: .6rem 1.3rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .3s ease;
+    box-shadow: 0 0 12px rgba(47,93,255,.4);
+}
+.btn-confirm:hover {
+    background: linear-gradient(90deg, var(--primary), #1a3dff);
+    transform: translateY(-2px);
+}
+
+.btn-cancel {
+    background: rgba(255,255,255,.1);
+    color: var(--muted);
+    border: 1px solid rgba(255,255,255,.15);
+    padding: .6rem 1.2rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all .3s ease;
+}
+.btn-cancel:hover {
+    background: rgba(255,255,255,.25);
+    color: var(--text);
+    transform: translateY(-2px);
+}
+
+/* === BOTÓN ELIMINAR — IGUAL AL DE SUCURSALES/USUARIOS === */
+.btn-danger {
+    background: linear-gradient(90deg, #ff3d3d, #e00);
+    color: #fff;
+    border: none;
+    padding: .6rem 1.3rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .3s ease;
+}
+.btn-danger:hover {
+    background: linear-gradient(90deg, #e43f3f, #c60000);
+    transform: translateY(-2px);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 640px) {
+    .modal-content {
+        width: 92%;
+        padding: 1.3rem;
+    }
+    .form-modal {
+        grid-template-columns: 1fr;
+    }
+    .form-modal input,
+    .form-modal select,
+    .modal-actions {
+        grid-column: span 1;
+    }
+}
+/* === MODAL CURSOS ASIGNADOS === */
+.modal-content.modal-cursos {
+    max-width: 1000px;
+    width: 90%;
+    padding: 2rem;
+}
+
+.tabla-cursos {
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+/* Tabla estilizada */
+.cursos-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+.cursos-table th, .cursos-table td {
+    padding: .7rem .8rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.cursos-table th {
+    color: var(--primary-light);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: .85rem;
+}
+.cursos-table tr:nth-child(even) {
+    background: rgba(255,255,255,.03);
+}
+.cursos-table tr:hover {
+    background: rgba(47,93,255,.15);
+    transition: .2s ease;
+}
+
+/* =======================================================
+ 🎨 BOTONES MINI — MODALES DE CURSOS (EDITAR / ELIMINAR)
+========================================================= */
+
+.btn-edit-mini,
+.btn-delete-mini {
+    border: none;
+    outline: none;
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 6px rgba(0,0,0,0.3);
+}
+
+/* ✏️ EDITAR */
+.btn-edit-mini i {
+    color: #3B82F6; /* azul brillante */
+    transition: color 0.25s ease, transform 0.25s ease;
+}
+.btn-edit-mini:hover i {
+    color: #60A5FA;
+    transform: scale(1.15);
+}
+.btn-edit-mini:hover {
+    background: rgba(59,130,246,0.1);
+    box-shadow: 0 0 8px rgba(59,130,246,0.4);
+}
+
+/* 🗑️ ELIMINAR */
+.btn-delete-mini i {
+    color: #F87171; /* rojo suave */
+    transition: color 0.25s ease, transform 0.25s ease;
+}
+.btn-delete-mini:hover i {
+    color: #FCA5A5;
+    transform: scale(1.15);
+}
+.btn-delete-mini:hover {
+    background: rgba(248,113,113,0.1);
+    box-shadow: 0 0 8px rgba(248,113,113,0.4);
+}
+
+/* === OPCIONAL: Mantener espaciado y alineación uniforme === */
+.acciones {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}

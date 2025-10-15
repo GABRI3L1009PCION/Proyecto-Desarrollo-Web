@@ -2,101 +2,91 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Student;
 use App\Models\Branch;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class SecretariaAlumnoController extends Controller
 {
-    // 📘 Mostrar lista de alumnos
+    /**
+     * 📋 Mostrar lista de alumnos (usuarios con rol estudiante)
+     */
     public function index()
     {
-        // Trae alumnos con su sucursal y usuario (para mostrar correo)
-        $alumnos = Student::with(['branch', 'user'])->orderBy('nombres')->get();
-        $sucursales = Branch::orderBy('nombre')->get();
+        $alumnos = Student::with(['branch', 'user'])
+            ->orderByDesc('id')
+            ->get();
 
-        return view('Secretaria.sec_alumnos', compact('alumnos', 'sucursales'));
+        // Usuarios con rol estudiante sin registro en students (para vincularlos)
+        $usuariosNoRegistrados = User::where('role', 'estudiante')
+            ->whereDoesntHave('student')
+            ->orderBy('name')
+            ->get();
+
+        $branches = Branch::orderBy('nombre')->get();
+
+        return view('Secretaria.alumnos', compact('alumnos', 'branches', 'usuariosNoRegistrados'));
     }
 
-    // ➕ Registrar nuevo alumno (con usuario)
+    /**
+     * ➕ Registrar un nuevo alumno
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'nombres' => 'required|string|max:150',
-            'telefono' => 'nullable|string|max:30',
-            'grade' => 'required|string',
-            'level' => 'required|string',
-            'branch_id' => 'required|exists:branches,id',
-            'email' => 'required|email|unique:users,email'
+        $validated = $request->validate([
+            'user_id'          => 'required|exists:users,id',
+            'nombres'          => 'required|string|max:120',
+            'telefono'         => 'nullable|string|max:30',
+            'fecha_nacimiento' => 'nullable|date',
+            'grade'            => 'required|in:Novatos,Expertos',
+            'level'            => 'required|in:Principiantes I,Principiantes II,Avanzados I,Avanzados II',
+            'branch_id'        => 'required|exists:branches,id',
         ]);
 
-        // Crear usuario vinculado al alumno
-        $user = User::create([
-            'name' => $request->nombres,
-            'email' => $request->email,
-            'password' => Hash::make('123456'), // Contraseña por defecto
-            'role' => 'estudiante'
-        ]);
-
-        // Crear el registro de alumno
-        Student::create([
-            'user_id' => $user->id,
-            'branch_id' => $request->branch_id,
-            'nombres' => $request->nombres,
-            'telefono' => $request->telefono,
-            'grade' => $request->grade,
-            'level' => $request->level,
-        ]);
+        Student::create($validated);
 
         return redirect()->route('secretaria.alumnos')
-            ->with('success', 'Alumno y usuario creados correctamente.');
+            ->with('success', '✅ Alumno vinculado y registrado exitosamente.');
     }
 
-    // ✏️ Actualizar alumno
+    /**
+     * ✏️ Editar alumno
+     */
     public function update(Request $request, $id)
     {
-        $alumno = Student::findOrFail($id);
+        $student = Student::findOrFail($id);
 
-        $request->validate([
-            'nombres' => 'required|string|max:150',
-            'telefono' => 'nullable|string|max:30',
-            'grade' => 'required|string',
-            'level' => 'required|string',
-            'branch_id' => 'required|exists:branches,id',
+        $validated = $request->validate([
+            'nombres'          => 'required|string|max:120',
+            'telefono'         => 'nullable|string|max:30',
+            'fecha_nacimiento' => 'nullable|date',
+            'grade'            => 'required|in:Novatos,Expertos',
+            'level'            => 'required|in:Principiantes I,Principiantes II,Avanzados I,Avanzados II',
+            'branch_id'        => 'required|exists:branches,id',
         ]);
 
-        $alumno->update([
-            'nombres' => $request->nombres,
-            'telefono' => $request->telefono,
-            'grade' => $request->grade,
-            'level' => $request->level,
-            'branch_id' => $request->branch_id,
-        ]);
+        $student->update($validated);
 
-        // También actualiza el nombre del usuario vinculado
-        if ($alumno->user) {
-            $alumno->user->update(['name' => $request->nombres]);
+        // 🔹 También actualiza el nombre en la tabla users si el alumno tiene usuario
+        if ($student->user) {
+            $student->user->update(['name' => $request->nombres]);
         }
 
         return redirect()->route('secretaria.alumnos')
-            ->with('success', 'Datos del alumno actualizados correctamente.');
+            ->with('success', '✏️ Alumno actualizado correctamente.');
     }
 
-    // 🗑️ Eliminar alumno
+    /**
+     * ❌ Eliminar alumno
+     */
     public function destroy($id)
     {
-        $alumno = Student::with('user')->findOrFail($id);
+        $student = Student::findOrFail($id);
+        $student->delete();
 
-        // Eliminar usuario vinculado si existe
-        if ($alumno->user) {
-            $alumno->user->delete();
-        }
-
-        $alumno->delete();
-
+        // 🔸 No se elimina el usuario, solo el vínculo académico
         return redirect()->route('secretaria.alumnos')
-            ->with('success', 'Alumno y usuario eliminados correctamente.');
+            ->with('success', '🗑️ Alumno eliminado exitosamente.');
     }
 }

@@ -98,7 +98,7 @@ Route::middleware(['auth', 'role:estudiante'])->group(function () {
     Route::get('/estudiante/panel', fn() => view('Estudiante.panel'))->name('estudiante.panel');
 });
 
-// ===== SECRETARIA =====
+// ===== SECRETARÍA =====
 Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(function () {
 
     // 🏠 PANEL PRINCIPAL
@@ -110,15 +110,36 @@ Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(func
     Route::put('/alumnos/{id}', [SecretariaAlumnoController::class, 'update'])->name('secretaria.alumnos.update');
     Route::delete('/alumnos/{id}', [SecretariaAlumnoController::class, 'destroy'])->name('secretaria.alumnos.destroy');
 
-    // 🧾 INSCRIPCIONES
-    Route::get('/inscripciones', [App\Http\Controllers\SecretariaInscripcionController::class, 'index'])->name('secretaria.inscripciones');
+// 🧾 INSCRIPCIONES
+    Route::get('/inscripciones', [App\Http\Controllers\SecretariaInscripcionController::class, 'index'])
+        ->name('secretaria.inscripciones');
+    Route::post('/inscripciones', [App\Http\Controllers\SecretariaInscripcionController::class, 'store'])
+        ->name('secretaria.inscripciones.store');
+    Route::put('/inscripciones/{id}', [App\Http\Controllers\SecretariaInscripcionController::class, 'update'])
+        ->name('secretaria.inscripciones.update');
+    Route::delete('/inscripciones/{id}', [App\Http\Controllers\SecretariaInscripcionController::class, 'destroy'])
+        ->name('secretaria.inscripciones.destroy');
 
     // 👩‍🏫 CATEDRÁTICOS
-    Route::get('/catedraticos', [App\Http\Controllers\SecretariaCatedraticoController::class, 'index'])->name('secretaria.catedraticos');
+    Route::get('/catedraticos', [App\Http\Controllers\SecretariaCatedraticoController::class, 'index'])
+        ->name('secretaria.catedraticos');
+    Route::post('/catedraticos', [App\Http\Controllers\SecretariaCatedraticoController::class, 'store'])
+        ->name('secretaria.catedraticos.store');
+    Route::put('/catedraticos/{id}', [App\Http\Controllers\SecretariaCatedraticoController::class, 'update'])
+        ->name('secretaria.catedraticos.update');
+    Route::delete('/catedraticos/{id}', [App\Http\Controllers\SecretariaCatedraticoController::class, 'destroy'])
+        ->name('secretaria.catedraticos.destroy');
+
+    // 📚 Ver cursos asignados (solo lectura)
+    Route::get('/catedraticos/{id}/cursos', [App\Http\Controllers\SecretariaCatedraticoController::class, 'cursos'])
+        ->name('secretaria.catedraticos.cursos');
+
 
     // 📊 REPORTES
-    Route::get('/reportes', [App\Http\Controllers\SecretariaReportController::class, 'index'])->name('secretaria.reportes');
+    Route::get('/reportes', [App\Http\Controllers\SecretariaReportController::class, 'index'])
+        ->name('secretaria.reportes');
 });
+
 
 
 // 🚪 Cierre de sesión

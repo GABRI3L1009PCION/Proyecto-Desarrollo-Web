@@ -111,7 +111,7 @@ Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(func
     Route::delete('/alumnos/{id}', [SecretariaAlumnoController::class, 'destroy'])->name('secretaria.alumnos.destroy');
 
     // 🧾 INSCRIPCIONES
-    Route::get('/inscripciones', [App\Http\Controllers\SecretariaInscripcionController::class, 'index'])->name('secretaria.inscripciones');
+    //Route::get('/inscripciones', [App\Http\Controllers\SecretariaInscripcionController::class, 'index'])->name('secretaria.inscripciones');
 
     // 👩‍🏫 CATEDRÁTICOS
     Route::get('/catedraticos', [App\Http\Controllers\SecretariaCatedraticoController::class, 'index'])->name('secretaria.catedraticos');

@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminTeacherController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SecretariaPanelController;
 use App\Http\Controllers\SecretariaAlumnoController;
+use App\Http\Controllers\SecretariaInscripcionController;
 
 /*
 |--------------------------------------------------------------------------

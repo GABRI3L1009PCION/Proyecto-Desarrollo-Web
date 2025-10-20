@@ -212,20 +212,22 @@
         // === ALERTA FLOTANTE ===
         function showFloatingAlert(message, type = 'error') {
             const alert = document.createElement('div');
-            alert.className = alert ${type};
+            alert.className = `alert ${type}`; // ✅ corregido
             alert.textContent = message;
-            alert.style.position = 'fixed';
-            alert.style.top = '15px';
-            alert.style.left = '50%';
-            alert.style.transform = 'translateX(-50%)';
-            alert.style.padding = '10px 20px';
-            alert.style.borderRadius = '8px';
-            alert.style.zIndex = '9999';
-            alert.style.background = type === 'error' ? '#e74c3c' : '#2ecc71';
-            alert.style.color = '#fff';
-            alert.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-            alert.style.opacity = '0';
-            alert.style.transition = 'opacity 0.3s ease';
+            Object.assign(alert.style, {
+                position: 'fixed',
+                top: '15px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                zIndex: '9999',
+                background: type === 'error' ? '#e74c3c' : '#2ecc71',
+                color: '#fff',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                opacity: '0',
+                transition: 'opacity 0.3s ease'
+            });
             document.body.appendChild(alert);
             setTimeout(() => alert.style.opacity = '1', 50);
             setTimeout(() => {
@@ -237,7 +239,7 @@
         // === VALIDACIONES ===
         const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        const passRegex = /^(?=.[a-z])(?=.[A-Z])(?=.*\d).{8,}$/;
+        const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/; // ✅ corregido
 
         // === FORM NUEVO USUARIO ===
         const formNuevo = document.querySelector('#formNuevoUsuario');
@@ -257,7 +259,7 @@
             if (!emailRegex.test(email))
                 return showFloatingAlert('❌ Ingresa un correo electrónico válido (ejemplo@dominio.com).');
             if (!passRegex.test(password))
-                return showFloatingAlert('❌ Ingresa una contraseña válida (mínimo 8 caracteres, con mayúscula, minúscula y número).');
+                return showFloatingAlert('❌ Contraseña inválida (mínimo 8 caracteres, con mayúscula, minúscula y número).');
 
             const data = { name, email, password, role };
 
@@ -280,7 +282,7 @@
                     showFloatingAlert(err.message || '❌ Error al crear el usuario.');
                 }
             } catch {
-                showFloatingAlert('⚠ Error de conexión con el servidor.');
+                showFloatingAlert('⚠️ Error de conexión con el servidor.');
             }
         });
 
@@ -312,17 +314,17 @@
             if (!nameRegex.test(name))
                 return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
             if (!emailRegex.test(email))
-                return showFloatingAlert('❌ Ingresa un correo electrónico válido (ejemplo@dominio.com).');
+                return showFloatingAlert('❌ Ingresa un correo electrónico válido.');
 
-            const data = { name, email, role, _method: 'PUT' }; // 👈 método spoofing
+            const data = { name, email, role, _method: 'PUT' };
 
             try {
-                const res = await fetch(/administrador/usuarios/${id}, {
-                    method: 'POST', // 👈 usamos POST pero Laravel lo leerá como PUT
-                        headers: {
+                const res = await fetch(`/administrador/usuarios/${id}`, { // ✅ corregido
+                    method: 'POST',
+                    headers: {
                         'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
                     },
                     body: JSON.stringify(data)
                 });
@@ -335,7 +337,7 @@
                     showFloatingAlert(err.message || '❌ Error al actualizar el usuario.');
                 }
             } catch {
-                showFloatingAlert('⚠ Error de conexión con el servidor.');
+                showFloatingAlert('⚠️ Error de conexión con el servidor.');
             }
         });
 
@@ -345,7 +347,7 @@
         document.querySelectorAll('.delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = /administrador/usuarios/${id};
+                formEliminar.action = `/administrador/usuarios/${id}`; // ✅ corregido
                 modalEliminar.classList.add('show');
             });
         });
@@ -402,6 +404,7 @@
             visibles.forEach(f => tbody.appendChild(f));
         }
     </script>
+
 
 
 @endsection

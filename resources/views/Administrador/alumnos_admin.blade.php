@@ -273,13 +273,41 @@
         const btnNuevo = document.getElementById('btnNuevoAlumno');
         btnNuevo.addEventListener('click', () => modalNuevo.classList.add('show'));
 
+        // === ALERTA FLOTANTE ===
+        function showFloatingAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            Object.assign(alert.style, {
+                position: 'fixed',
+                top: '15px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                zIndex: '9999',
+                background: type === 'error' ? '#e74c3c' : '#2ecc71',
+                color: '#fff',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                opacity: '0',
+                transition: 'opacity 0.3s ease'
+            });
+            document.body.appendChild(alert);
+            setTimeout(() => alert.style.opacity = '1', 50);
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 400);
+            }, 3500);
+        }
+
         // === EDITAR ===
         const modalEditar = document.getElementById('modalEditarAlumno');
         const formEditar = document.getElementById('formEditarAlumno');
+
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEditar.action = /administrador/alumnos/${id};
+                formEditar.action = `/administrador/alumnos/${id}`; // ✅ corregido
                 document.getElementById('editNombre').value = btn.dataset.nombre;
                 document.getElementById('editTelefono').value = btn.dataset.telefono;
                 document.getElementById('editFecha').value = btn.dataset.fecha;
@@ -296,7 +324,7 @@
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = /administrador/alumnos/${id};
+                formEliminar.action = `/administrador/alumnos/${id}`; // ✅ corregido
                 modalEliminar.classList.add('show');
             });
         });
@@ -361,4 +389,5 @@
             o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); })
         );
     </script>
+
 @endsection

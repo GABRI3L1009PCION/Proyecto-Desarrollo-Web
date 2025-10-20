@@ -177,15 +177,91 @@
     <script>
         // === NUEVO CURSO ===
         const modalNuevo = document.getElementById('modalNuevoCurso');
-        document.getElementById('btnNuevoCurso').addEventListener('click', () => modalNuevo.classList.add('show'));
-
-        // === EDITAR ===
         const modalEditar = document.getElementById('modalEditarCurso');
+        const modalEliminar = document.getElementById('modalEliminarCurso');
+        const btnNuevo = document.getElementById('btnNuevoCurso');
+        btnNuevo.addEventListener('click', () => modalNuevo.classList.add('show'));
+
+        // === ALERTA FLOTANTE ===
+        function showFloatingAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.className = `alert ${type}`;
+            alert.textContent = message;
+            Object.assign(alert.style, {
+                position: 'fixed',
+                top: '15px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                zIndex: '9999',
+                background: type === 'error' ? '#e74c3c' : '#2ecc71',
+                color: '#fff',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                opacity: '0',
+                transition: 'opacity 0.3s ease'
+            });
+            document.body.appendChild(alert);
+            setTimeout(() => alert.style.opacity = '1', 50);
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 400);
+            }, 3500);
+        }
+
+        // === VALIDACIONES ===
+        const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+        // === FORM NUEVO CURSO ===
+        const formNuevo = document.querySelector('#modalNuevoCurso form');
+        formNuevo.setAttribute('novalidate', true);
+
+        formNuevo.addEventListener('submit', async e => {
+            e.preventDefault();
+            const form = e.target;
+            const codigo = form.codigo.value.trim();
+            const nombre = form.nombre.value.trim();
+            const creditos = form.creditos.value.trim();
+            const descripcion = form.descripcion.value.trim();
+
+            if (!nombreRegex.test(nombre))
+                return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
+            if (creditos && (creditos < 0 || creditos > 20))
+                return showFloatingAlert('❌ Los créditos deben ser un número entre 0 y 20.');
+
+            const data = { codigo, nombre, creditos, descripcion };
+
+            try {
+                const res = await fetch("{{ route('administrador.cursos.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    showFloatingAlert('✅ Curso creado correctamente.', 'success');
+                    cerrarModal('modalNuevoCurso');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    const err = await res.json();
+                    showFloatingAlert(err.message || '❌ Error al crear el curso.');
+                }
+            } catch {
+                showFloatingAlert('⚠️ Error de conexión con el servidor.');
+            }
+        });
+
+        // === FORM EDITAR CURSO ===
         const formEditar = document.getElementById('formEditarCurso');
+        formEditar.setAttribute('novalidate', true);
+
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEditar.action = /administrador/cursos/${id};
+                formEditar.setAttribute('data-id', id);
                 document.getElementById('editCodigo').value = btn.dataset.codigo;
                 document.getElementById('editNombre').value = btn.dataset.nombre;
                 document.getElementById('editCreditos').value = btn.dataset.creditos;
@@ -194,13 +270,51 @@
             });
         });
 
-        // === ELIMINAR ===
-        const modalEliminar = document.getElementById('modalEliminarCurso');
+        formEditar.addEventListener('submit', async e => {
+            e.preventDefault();
+            const form = e.target;
+            const id = form.getAttribute('data-id');
+            const codigo = form.codigo.value.trim();
+            const nombre = form.nombre.value.trim();
+            const creditos = form.creditos.value.trim();
+            const descripcion = form.descripcion.value.trim();
+
+            if (!nombreRegex.test(nombre))
+                return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
+            if (creditos && (creditos < 0 || creditos > 20))
+                return showFloatingAlert('❌ Los créditos deben ser un número entre 0 y 20.');
+
+            const data = { codigo, nombre, creditos, descripcion, _method: 'PUT' };
+
+            try {
+                const res = await fetch(`/administrador/cursos/${id}`, { // ✅ corregido
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    showFloatingAlert('✅ Curso actualizado correctamente.', 'success');
+                    cerrarModal('modalEditarCurso');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    const err = await res.json();
+                    showFloatingAlert(err.message || '❌ Error al actualizar el curso.');
+                }
+            } catch {
+                showFloatingAlert('⚠️ Error de conexión con el servidor.');
+            }
+        });
+
+        // === ELIMINAR CURSO ===
         const formEliminar = document.getElementById('formEliminarCurso');
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = /administrador/cursos/${id};
+                formEliminar.action = `/administrador/cursos/${id}`; // ✅ corregido
                 modalEliminar.classList.add('show');
             });
         });
@@ -208,13 +322,14 @@
         // === BUSCAR Y ORDENAR ===
         const buscar = document.getElementById('buscarCurso');
         const orden = document.getElementById('ordenCursos');
+        const tabla = document.getElementById('tablaCursos');
 
         [buscar, orden].forEach(el => el.addEventListener('input', filtrarYOrdenar));
 
         function filtrarYOrdenar() {
             const texto = buscar.value.toLowerCase();
             const ordenSel = orden.value;
-            const filas = Array.from(document.querySelectorAll('#tablaCursos tr'));
+            const filas = Array.from(tabla.querySelectorAll('tr'));
 
             // 🔍 Filtro por nombre
             filas.forEach(fila => {
@@ -236,8 +351,7 @@
                 return 0;
             });
 
-            const tbody = document.getElementById('tablaCursos');
-            visibles.forEach(f => tbody.appendChild(f));
+            visibles.forEach(f => tabla.appendChild(f));
         }
 
         // === CERRAR MODALES ===
@@ -249,4 +363,5 @@
             o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); })
         );
     </script>
+
 @endsection

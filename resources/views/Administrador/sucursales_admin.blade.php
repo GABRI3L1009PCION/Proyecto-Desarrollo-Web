@@ -177,7 +177,7 @@
         // === ALERTA FLOTANTE ===
         function showFloatingAlert(message, type = 'error') {
             const alert = document.createElement('div');
-            alert.className = alert ${type};
+            alert.className = `alert ${type}`; // ✅ corregido
             alert.textContent = message;
             Object.assign(alert.style, {
                 position: 'fixed',
@@ -239,7 +239,7 @@
                     showFloatingAlert(err.message || '❌ Error al crear la sucursal.');
                 }
             } catch {
-                showFloatingAlert('⚠ Error de conexión con el servidor.');
+                showFloatingAlert('⚠️ Error de conexión con el servidor.');
             }
         });
 
@@ -272,12 +272,12 @@
             const data = { nombre, direccion, telefono, _method: 'PUT' };
 
             try {
-                const res = await fetch(/administrador/sucursales/${id}, {
-                    method: 'POST', // usamos POST + _method PUT
-                        headers: {
+                const res = await fetch(`/administrador/sucursales/${id}`, { // ✅ corregido
+                    method: 'POST',
+                    headers: {
                         'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
                     },
                     body: JSON.stringify(data)
                 });
@@ -290,7 +290,7 @@
                     showFloatingAlert(err.message || '❌ Error al actualizar la sucursal.');
                 }
             } catch {
-                showFloatingAlert('⚠ Error de conexión con el servidor.');
+                showFloatingAlert('⚠️ Error de conexión con el servidor.');
             }
         });
 
@@ -299,7 +299,7 @@
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = /administrador/sucursales/${id};
+                formEliminar.action = `/administrador/sucursales/${id}`; // ✅ corregido
                 modalEliminar.classList.add('show');
             });
         });
@@ -348,5 +348,6 @@
             visibles.forEach(f => tablaSucursales.appendChild(f));
         }
     </script>
+
 
 @endsection

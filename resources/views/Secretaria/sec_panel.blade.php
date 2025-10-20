@@ -95,11 +95,13 @@
                         <tbody>
                         @forelse($ultimasInscripciones ?? [] as $ins)
                             <tr>
-                                <td>{{ $ins->alumno->nombre }}</td>
-                                <td>{{ $ins->curso->nombre }}</td>
-                                <td>{{ $ins->grado }}</td>
-                                <td>{{ $ins->sucursal->nombre }}</td>
-                                <td>{{ $ins->created_at->format('d/m/Y') }}</td>
+                            <tr>
+                                <td>{{ $ins->student->user->name ?? '—' }}</td>
+                                <td>{{ $ins->offering->course->nombre ?? '—' }}</td>
+                                <td>{{ $ins->offering->grade ?? '—' }}</td>
+                                <td>{{ $ins->offering->branch->nombre ?? '—' }}</td>
+                                <td>{{ \Carbon\Carbon::parse($ins->fecha)->format('d/m/Y') }}</td>
+                            </tr>
                             </tr>
                         @empty
                             <tr><td colspan="5" class="text-center">No hay inscripciones recientes</td></tr>

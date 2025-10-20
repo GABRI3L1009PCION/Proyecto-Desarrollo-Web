@@ -1,5 +1,6 @@
 <?php
 // app/Models/Enrollment.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,15 +19,21 @@ class Enrollment extends Model
         'fecha',
     ];
 
-    // Relación con estudiante
+    // 🔹 Relación con estudiante
     public function student()
     {
         return $this->belongsTo(Student::class);
     }
 
-    // Relación con oferta (curso+docente+sede)
+    // 🔹 Relación con oferta (curso, docente, sede)
     public function offering()
     {
         return $this->belongsTo(Offering::class);
+    }
+
+    // 🔹 NUEVA RELACIÓN: una inscripción tiene una calificación
+    public function grade()
+    {
+        return $this->hasOne(Grade::class, 'enrollment_id');
     }
 }

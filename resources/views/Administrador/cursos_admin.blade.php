@@ -35,7 +35,7 @@
         <main class="main-content">
             <header class="topbar">
                 <h2><i class="fa-solid fa-book"></i> Gestión de Cursos</h2>
-                <p>Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
+                <p class="welcome">Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
             </header>
 
             <section class="cursos-section">
@@ -185,7 +185,7 @@
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEditar.action = `/administrador/cursos/${id}`;
+                formEditar.action = /administrador/cursos/${id};
                 document.getElementById('editCodigo').value = btn.dataset.codigo;
                 document.getElementById('editNombre').value = btn.dataset.nombre;
                 document.getElementById('editCreditos').value = btn.dataset.creditos;
@@ -200,7 +200,7 @@
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = `/administrador/cursos/${id}`;
+                formEliminar.action = /administrador/cursos/${id};
                 modalEliminar.classList.add('show');
             });
         });

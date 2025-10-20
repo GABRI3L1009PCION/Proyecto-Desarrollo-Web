@@ -1,5 +1,6 @@
 <?php
 // app/Models/Grade.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,12 +17,14 @@ class Grade extends Model
         'parcial1',
         'parcial2',
         'final',
+        'total',         // 🔹 Nueva columna
+        'estado',        // 🔹 Nueva columna
         'observaciones',
     ];
 
-    // Relación con inscripción
+    // 🔹 Relación con inscripción (cada nota pertenece a una inscripción)
     public function enrollment()
     {
-        return $this->belongsTo(Enrollment::class);
+        return $this->belongsTo(Enrollment::class, 'enrollment_id');
     }
 }

@@ -1,0 +1,289 @@
+/* =======================================================
+🎓 CATEDRÁTICO — MÓDULO DE CALIFICACIONES (UNIFICADO CON MIS CURSOS)
+======================================================= */
+
+/* === CONTENEDOR PRINCIPAL === */
+.main-content {
+    margin-left: 250px;
+    padding: 2rem;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    color: var(--text);
+    background: linear-gradient(180deg, #0e2358 0%, #081f4d 100%);
+}
+
+/* === TOPBAR === */
+.topbar {
+    background: rgba(255,255,255,0.05);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+.topbar h2 {
+    color: var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.welcome {
+    background: rgba(255,255,255,0.08);
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    color: var(--text);
+}
+.welcome strong { color: var(--primary); }
+
+/* === SELECTOR DE CURSO === */
+.selector-curso {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.8rem;
+}
+.selector-curso label {
+    color: var(--primary-light);
+    font-weight: 600;
+}
+.selector-curso select {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text);
+    padding: .55rem .9rem;
+    border-radius: 10px;
+    font-size: .9rem;
+    outline: none;
+    transition: all .3s ease;
+    backdrop-filter: blur(6px);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    color-scheme: dark; /* corrige color del dropdown */
+}
+.selector-curso select option {
+    background: #0e2358;
+    color: #fff;
+}
+.selector-curso select:focus {
+    background: rgba(255,255,255,0.15);
+    border-color: var(--primary-light);
+    box-shadow: 0 0 8px var(--primary-light);
+}
+
+/* === FILTROS === */
+.filtros-section {
+    background: rgba(255,255,255,0.04);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.8rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.buscarAlumno,
+.filtroEstado {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text);
+    padding: .55rem .9rem;
+    border-radius: 10px;
+    font-size: .9rem;
+    outline: none;
+    transition: all .3s ease;
+    backdrop-filter: blur(6px);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
+.filtroEstado option {
+    background: #0e2358;
+    color: #fff;
+}
+.buscarAlumno:focus,
+.filtroEstado:focus {
+    background: rgba(255,255,255,0.15);
+    border-color: var(--primary-light);
+    box-shadow: 0 0 8px var(--primary-light);
+}
+.buscarAlumno::placeholder { color: var(--muted); }
+
+/* === RESUMEN DEL CURSO === */
+.resumen-curso {
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+}
+.resumen-curso strong { color: var(--primary-light); }
+.resumen-curso .aprobados { color: #4ade80; }
+.resumen-curso .recuperacion { color: #facc15; }
+.resumen-curso .reprobados { color: #f87171; }
+
+/* === TABLA === */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+    font-size: .95rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    background: transparent;
+}
+.data-table th, .data-table td {
+    padding: 1rem 1.2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.data-table th {
+    color: var(--primary-light);
+    text-transform: uppercase;
+    font-size: .85rem;
+    letter-spacing: .5px;
+    background: rgba(255,255,255,0.05);
+}
+.data-table tr:hover {
+    background: rgba(255,255,255,0.06);
+    transition: background .3s ease;
+}
+
+/* === BOTÓN CALIFICAR === */
+.btn-modal {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    border: none;
+    color: #fff;
+    padding: .5rem .9rem;
+    border-radius: 8px;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: all .3s ease;
+    box-shadow: 0 5px 15px rgba(47,93,255,0.3);
+}
+.btn-modal:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(47,93,255,0.55);
+}
+.btn-modal:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+}
+
+/* === MODAL === */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    padding-top: 6rem;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+}
+.modal-content {
+    background: #081f4d;
+    color: var(--text);
+    margin: auto;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: zoomIn .4s ease;
+}
+@keyframes zoomIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+.modal-content h3 {
+    color: var(--primary-light);
+    text-align: center;
+    margin-bottom: 1rem;
+}
+.modal-content label {
+    display: block;
+    margin-bottom: .3rem;
+    font-weight: 600;
+    color: var(--primary-light);
+}
+.modal-content input {
+    width: 100%;
+    padding: .5rem .7rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    font-size: .9rem;
+    outline: none;
+    transition: all .3s ease;
+}
+.modal-content input:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 6px var(--primary-light);
+    background: rgba(255,255,255,0.12);
+}
+.modal-content input[readonly] {
+    background: rgba(255,255,255,0.05);
+    color: #cbd5e1;
+}
+.close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+.close:hover { color: #fff; }
+
+/* === BOTÓN GUARDAR EN MODAL === */
+.btn-guardar {
+    display: block;
+    margin: 1rem auto 0;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: .6rem 1.2rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(47,93,255,0.3);
+}
+.btn-guardar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(47,93,255,0.55);
+}
+.btn-guardar:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 900px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 1.5rem;
+    }
+    .data-table th, .data-table td {
+        font-size: .85rem;
+        padding: .6rem .8rem;
+    }
+    .modal-content {
+        width: 90%;
+        padding: 1.2rem;
+    }
+}

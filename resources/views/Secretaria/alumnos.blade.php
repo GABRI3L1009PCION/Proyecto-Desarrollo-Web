@@ -3,8 +3,8 @@
 
 @section('content')
     <link rel="stylesheet" href="{{ asset('styles/admin_dashboard.css') }}">
-    <link rel="stylesheet" href="{{ asset('styles/admin_alumnos.css') }}">
-    <link rel="stylesheet" href="{{ asset('styles/admin_alum_modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/secretaria_alumnos.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/sec_alumnos_modal.css') }}">
     <script src="https://kit.fontawesome.com/6e7086f99f.js" crossorigin="anonymous"></script>
 
     <div class="admin-wrapper">
@@ -13,16 +13,15 @@
             <div class="logo-area">
                 <img src="{{ asset('images/logo2.png') }}" alt="Logo">
                 <h3>Código Rapidito</h3>
+                <p class="role-tag">Secretaría</p>
             </div>
 
             <ul class="menu">
-                <li class="menu-item"><a href="{{ route('administrador.panel') }}"><i class="fa-solid fa-gauge"></i> <span>Inicio</span></a></li>
-                <li class="menu-item"><a href="{{ route('administrador.usuarios') }}"><i class="fa-solid fa-user-gear"></i> <span>Usuarios</span></a></li>
-                <li class="menu-item"><a href="{{ route('administrador.sucursales') }}"><i class="fa-solid fa-building"></i> <span>Sucursales</span></a></li>
-                <li class="menu-item active"><a href="{{ route('administrador.alumnos') }}"><i class="fa-solid fa-user-graduate"></i> <span>Alumnos</span></a></li>
-                <li class="menu-item"><a href="{{ route('administrador.catedraticos') }}"><i class="fa-solid fa-chalkboard-user"></i> <span>Catedráticos</span></a></li>
-                <li class="menu-item"><a href="{{ route('administrador.cursos') }}"><i class="fa-solid fa-book-open-reader"></i> <span>Cursos</span></a></li>
-                <li class="menu-item"><a href="{{ route('administrador.reportes') }}"><i class="fa-solid fa-chart-line"></i> <span>Reportes</span></a></li>
+                <li class="menu-item"><a href="{{ route('secretaria.panel') }}"><i class="fa-solid fa-gauge"></i> <span>Panel</span></a></li>
+                <li class="menu-item active"><a href="{{ route('secretaria.alumnos') }}"><i class="fa-solid fa-user-graduate"></i> <span>Alumnos</span></a></li>
+                <li class="menu-item"><a href="{{ route('secretaria.inscripciones') }}"><i class="fa-solid fa-clipboard-list"></i> <span>Inscripciones</span></a></li>
+                <li class="menu-item"><a href="{{ route('secretaria.catedraticos') }}"><i class="fa-solid fa-chalkboard-user"></i> <span>Catedráticos</span></a></li>
+                <li class="menu-item"><a href="{{ route('secretaria.reportes') }}"><i class="fa-solid fa-file-lines"></i> <span>Reportes</span></a></li>
             </ul>
 
             <form action="{{ route('logout') }}" method="POST" class="logout-form">
@@ -35,8 +34,7 @@
         <main class="main-content">
             <header class="topbar">
                 <h2><i class="fa-solid fa-user-graduate"></i> Gestión de Alumnos</h2>
-                <p class="welcome">Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
-
+                <p class="welcome">Bienvenida, <strong>{{ Auth::user()->name ?? 'Secretaria' }}</strong></p>
             </header>
 
             <section class="alumnos-section">
@@ -45,7 +43,7 @@
                     <div class="actions-right">
                         <input type="text" placeholder="Buscar alumno..." id="buscarAlumno">
 
-                        <!-- 🔹 NUEVOS FILTROS -->
+                        <!-- 🔹 FILTROS -->
                         <select id="filtroNivel">
                             <option value="">Todos los niveles</option>
                             <option value="Principiantes I">Principiantes I</option>
@@ -94,7 +92,7 @@
                     </tr>
                     </thead>
                     <tbody id="tablaAlumnos">
-                    @forelse($students as $student)
+                    @forelse($alumnos as $student)
                         <tr>
                             <td>{{ $student->id }}</td>
                             <td class="nombre">{{ $student->nombres }}</td>
@@ -116,7 +114,7 @@
                                         data-branch="{{ $student->branch_id }}">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
-                                <button class="btn-delete" data-id="{{ $student->id }}">
+                                <button type="button" class="btn-delete" data-id="{{ $student->id }}">
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             </td>
@@ -134,7 +132,7 @@
     <div id="modalNuevoAlumno" class="modal-overlay">
         <div class="modal-content">
             <h3><i class="fa-solid fa-user-plus"></i> Nuevo Alumno</h3>
-            <form method="POST" action="{{ route('administrador.alumnos.store') }}" class="form-modal">
+            <form method="POST" action="{{ route('secretaria.alumnos.store') }}" class="form-modal">
                 @csrf
 
                 <div class="campo-full">
@@ -253,8 +251,8 @@
 
     <!-- === MODAL ELIMINAR ALUMNO === -->
     <div id="modalEliminarAlumno" class="modal-overlay">
-        <div class="modal-content">
-            <h3 style="color:#FF5C5C;"><i class="fa-solid fa-triangle-exclamation"></i> Confirmar eliminación</h3>
+        <div class="modal-content modal-delete">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Confirmar eliminación</h3>
             <p>¿Estás seguro de que deseas eliminar este alumno? Esta acción no se puede deshacer.</p>
             <form method="POST" id="formEliminarAlumno">
                 @csrf
@@ -279,7 +277,7 @@
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEditar.action = /administrador/alumnos/${id};
+                formEditar.action = `/secretaria/alumnos/${id}`;
                 document.getElementById('editNombre').value = btn.dataset.nombre;
                 document.getElementById('editTelefono').value = btn.dataset.telefono;
                 document.getElementById('editFecha').value = btn.dataset.fecha;
@@ -296,12 +294,12 @@
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = /administrador/alumnos/${id};
+                formEliminar.action = `/secretaria/alumnos/${id}`;
                 modalEliminar.classList.add('show');
             });
         });
 
-        // === BUSCAR Y FILTROS ===
+        // === FILTROS Y ORDEN ===
         const buscar = document.getElementById('buscarAlumno');
         const orden = document.getElementById('ordenAlumnos');
         const filtroNivel = document.getElementById('filtroNivel');

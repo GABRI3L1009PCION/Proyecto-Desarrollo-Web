@@ -35,7 +35,8 @@
         <main class="main-content">
             <header class="topbar">
                 <h2><i class="fa-solid fa-chalkboard-user"></i> Gestión de Catedráticos</h2>
-                <p>Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
+                <p class="welcome">Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
+
             </header>
 
             <section class="catedraticos-section">

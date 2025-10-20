@@ -69,7 +69,7 @@
         <main class="main-content">
             <header class="topbar">
                 <h2>Panel del Administrador</h2>
-                <p>Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
+                <p class="welcome">Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
             </header>
 
             <!-- === DISTRIBUCIÓN PRINCIPAL === -->

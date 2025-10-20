@@ -42,7 +42,7 @@
         <main class="main-content">
             <header class="topbar">
                 <h2><i class="fa-solid fa-user-gear"></i> Gestión de Usuarios</h2>
-                <p>Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
+                <p class="welcome">Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
             </header>
 
             <section class="users-section">
@@ -50,10 +50,7 @@
                     <div class="left-group">
                         <h3><i class="fa-solid fa-users"></i> Lista de usuarios registrados</h3>
 
-                        <!-- 🔍 BUSCADOR -->
                         <input type="text" id="buscarUsuario" class="filtro-input" placeholder="Buscar por nombre o correo...">
-
-                        <!-- 🎚️ FILTRO ROL -->
                         <select id="filtroRol" class="filtro-select">
                             <option value="">Todos los roles</option>
                             <option value="admin">Administrador</option>
@@ -61,8 +58,6 @@
                             <option value="estudiante">Estudiante</option>
                             <option value="secretaria">Secretaria</option>
                         </select>
-
-                        <!-- 🔄 ORDEN -->
                         <select id="filtroOrden" class="filtro-select">
                             <option value="recientes">Más recientes</option>
                             <option value="antiguos">Más antiguos</option>
@@ -117,18 +112,33 @@
         </main>
     </div>
 
-    <!-- === MODALES (IGUALES A TU VERSIÓN ORIGINAL) === -->
+    <!-- === MODAL NUEVO USUARIO === -->
     <div id="modalNuevoUsuario" class="modal-overlay">
         <div class="modal-content">
             <h3><i class="fa-solid fa-user-plus"></i> Nuevo Usuario</h3>
-            <form method="POST" action="{{ route('administrador.usuarios.store') }}" class="form-modal">
+            <form method="POST" action="{{ route('administrador.usuarios.store') }}" class="form-modal" id="formNuevoUsuario">
                 @csrf
                 <label>Nombre completo</label>
-                <input type="text" name="name" required>
+                <input type="text" name="name"
+                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                       title="Solo se permiten letras y espacios."
+                       required>
+
                 <label>Correo electrónico</label>
-                <input type="email" name="email" required>
+                <input type="email" name="email"
+                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                       title="Ingresa un correo válido (ejemplo@dominio.com)."
+                       required>
+
                 <label>Contraseña</label>
-                <input type="password" name="password" required>
+                <input type="password" name="password"
+                       pattern="^(?=.[a-z])(?=.[A-Z])(?=.*\d).{8,}$"
+                       title="Mínimo 8 caracteres, incluyendo mayúscula, minúscula y número."
+                       required>
+                <small style="color:#aaa; font-size:0.9rem;">
+                    La contraseña debe tener al menos 8 caracteres, con mayúscula, minúscula y número.
+                </small>
+
                 <label>Rol del usuario</label>
                 <select name="role" required>
                     <option value="admin">Administrador</option>
@@ -136,6 +146,7 @@
                     <option value="estudiante">Estudiante</option>
                     <option value="secretaria">Secretaria</option>
                 </select>
+
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Guardar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalNuevoUsuario')">Cancelar</button>
@@ -144,6 +155,7 @@
         </div>
     </div>
 
+    <!-- === MODAL EDITAR === -->
     <div id="modalEditarUsuario" class="modal-overlay">
         <div class="modal-content">
             <h3><i class="fa-solid fa-user-pen"></i> Editar Usuario</h3>
@@ -151,9 +163,15 @@
                 @csrf
                 @method('PUT')
                 <label>Nombre completo</label>
-                <input type="text" name="name" id="editName" required>
+                <input type="text" name="name" id="editName"
+                       pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$"
+                       title="Solo se permiten letras y espacios."
+                       required>
                 <label>Correo electrónico</label>
-                <input type="email" name="email" id="editEmail" required>
+                <input type="email" name="email" id="editEmail"
+                       pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                       title="Ingresa un correo válido (ejemplo@dominio.com)."
+                       required>
                 <label>Rol del usuario</label>
                 <select name="role" id="editRole" required>
                     <option value="admin">Administrador</option>
@@ -169,6 +187,7 @@
         </div>
     </div>
 
+    <!-- === MODAL ELIMINAR === -->
     <div id="modalEliminarUsuario" class="modal-overlay">
         <div class="modal-content">
             <h3 style="color:#FF5C5C;"><i class="fa-solid fa-triangle-exclamation"></i> Confirmar eliminación</h3>
@@ -190,15 +209,58 @@
         const btnNuevo = document.getElementById('btnNuevoUsuario');
         btnNuevo.addEventListener('click', () => modalNuevo.classList.add('show'));
 
-        document.querySelector('#modalNuevoUsuario form').addEventListener('submit', async e => {
+        // === ALERTA FLOTANTE ===
+        function showFloatingAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.className = alert ${type};
+            alert.textContent = message;
+            alert.style.position = 'fixed';
+            alert.style.top = '15px';
+            alert.style.left = '50%';
+            alert.style.transform = 'translateX(-50%)';
+            alert.style.padding = '10px 20px';
+            alert.style.borderRadius = '8px';
+            alert.style.zIndex = '9999';
+            alert.style.background = type === 'error' ? '#e74c3c' : '#2ecc71';
+            alert.style.color = '#fff';
+            alert.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+            alert.style.opacity = '0';
+            alert.style.transition = 'opacity 0.3s ease';
+            document.body.appendChild(alert);
+            setTimeout(() => alert.style.opacity = '1', 50);
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 400);
+            }, 3500);
+        }
+
+        // === VALIDACIONES ===
+        const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        const passRegex = /^(?=.[a-z])(?=.[A-Z])(?=.*\d).{8,}$/;
+
+        // === FORM NUEVO USUARIO ===
+        const formNuevo = document.querySelector('#formNuevoUsuario');
+        formNuevo.setAttribute('novalidate', true);
+
+        formNuevo.addEventListener('submit', async e => {
             e.preventDefault();
             const form = e.target;
-            const data = {
-                name: form.name.value.trim(),
-                email: form.email.value.trim(),
-                password: form.password.value.trim(),
-                role: form.role.value
-            };
+
+            const name = form.name.value.trim();
+            const email = form.email.value.trim();
+            const password = form.password.value.trim();
+            const role = form.role.value;
+
+            if (!nameRegex.test(name))
+                return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
+            if (!emailRegex.test(email))
+                return showFloatingAlert('❌ Ingresa un correo electrónico válido (ejemplo@dominio.com).');
+            if (!passRegex.test(password))
+                return showFloatingAlert('❌ Ingresa una contraseña válida (mínimo 8 caracteres, con mayúscula, minúscula y número).');
+
+            const data = { name, email, password, role };
+
             try {
                 const res = await fetch("{{ route('administrador.usuarios.store') }}", {
                     method: 'POST',
@@ -210,29 +272,26 @@
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
-                    const msg = document.createElement('div');
-                    msg.className = 'alert success';
-                    msg.textContent = '✅ Usuario creado correctamente.';
-                    document.body.appendChild(msg);
-                    setTimeout(() => msg.remove(), 3500);
+                    showFloatingAlert('✅ Usuario creado correctamente.', 'success');
                     cerrarModal('modalNuevoUsuario');
-                    setTimeout(() => window.location.reload(), 700);
+                    setTimeout(() => window.location.reload(), 1000);
                 } else {
                     const err = await res.json();
-                    alert(err.message || '❌ Error al crear el usuario.');
+                    showFloatingAlert(err.message || '❌ Error al crear el usuario.');
                 }
             } catch {
-                alert('⚠️ Error de conexión con el servidor.');
+                showFloatingAlert('⚠ Error de conexión con el servidor.');
             }
         });
 
-        // === EDITAR Y ELIMINAR USUARIO ===
+        // === MODAL EDITAR ===
         const modalEditar = document.getElementById('modalEditarUsuario');
         const formEditar = document.getElementById('formEditarUsuario');
+
         document.querySelectorAll('.edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEditar.action = `/administrador/usuarios/${id}`;
+                formEditar.setAttribute('data-id', id);
                 document.getElementById('editName').value = btn.dataset.name;
                 document.getElementById('editEmail').value = btn.dataset.email;
                 document.getElementById('editRole').value = btn.dataset.role;
@@ -240,22 +299,65 @@
             });
         });
 
+        formEditar.setAttribute('novalidate', true);
+
+        formEditar.addEventListener('submit', async e => {
+            e.preventDefault();
+            const form = e.target;
+            const id = form.getAttribute('data-id');
+            const name = form.name.value.trim();
+            const email = form.email.value.trim();
+            const role = form.role.value;
+
+            if (!nameRegex.test(name))
+                return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
+            if (!emailRegex.test(email))
+                return showFloatingAlert('❌ Ingresa un correo electrónico válido (ejemplo@dominio.com).');
+
+            const data = { name, email, role, _method: 'PUT' }; // 👈 método spoofing
+
+            try {
+                const res = await fetch(/administrador/usuarios/${id}, {
+                    method: 'POST', // 👈 usamos POST pero Laravel lo leerá como PUT
+                        headers: {
+                        'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    showFloatingAlert('✅ Usuario actualizado correctamente.', 'success');
+                    cerrarModal('modalEditarUsuario');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    const err = await res.json();
+                    showFloatingAlert(err.message || '❌ Error al actualizar el usuario.');
+                }
+            } catch {
+                showFloatingAlert('⚠ Error de conexión con el servidor.');
+            }
+        });
+
+        // === MODAL ELIMINAR ===
         const modalEliminar = document.getElementById('modalEliminarUsuario');
         const formEliminar = document.getElementById('formEliminarUsuario');
         document.querySelectorAll('.delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = `/administrador/usuarios/${id}`;
+                formEliminar.action = /administrador/usuarios/${id};
                 modalEliminar.classList.add('show');
             });
         });
 
-        // === CERRAR ===
+        // === CERRAR MODALES ===
         window.addEventListener('keydown', e => {
             if (e.key === 'Escape') [modalNuevo, modalEditar, modalEliminar].forEach(m => m.classList.remove('show'));
         });
         function cerrarModal(id) { document.getElementById(id).classList.remove('show'); }
-        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); }));
+        document.querySelectorAll('.modal-overlay').forEach(o =>
+            o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); })
+        );
 
         // === BUSCADOR Y FILTROS ===
         const buscar = document.getElementById('buscarUsuario');
@@ -272,7 +374,6 @@
             const orden = filtroOrden.value;
             const filas = Array.from(document.querySelectorAll('#tablaUsuarios tr'));
 
-            // Filtrar
             filas.forEach(fila => {
                 const nombre = fila.querySelector('.nombre')?.textContent.toLowerCase();
                 const correo = fila.querySelector('.correo')?.textContent.toLowerCase();
@@ -284,25 +385,16 @@
                         : 'none';
             });
 
-            // Ordenar visibles (por ID para recientes/antiguos)
             const visibles = filas.filter(f => f.style.display !== 'none');
             visibles.sort((a, b) => {
                 const idA = parseInt(a.querySelector('td').textContent.trim());
                 const idB = parseInt(b.querySelector('td').textContent.trim());
-
-                if (orden === 'alfabetico') {
-                    const nA = a.querySelector('.nombre').textContent.toLowerCase();
-                    const nB = b.querySelector('.nombre').textContent.toLowerCase();
-                    return nA.localeCompare(nB);
-                }
-                if (orden === 'inverso') {
-                    const nA = a.querySelector('.nombre').textContent.toLowerCase();
-                    const nB = b.querySelector('.nombre').textContent.toLowerCase();
-                    return nB.localeCompare(nA);
-                }
+                if (orden === 'alfabetico')
+                    return a.querySelector('.nombre').textContent.localeCompare(b.querySelector('.nombre').textContent);
+                if (orden === 'inverso')
+                    return b.querySelector('.nombre').textContent.localeCompare(a.querySelector('.nombre').textContent);
                 if (orden === 'antiguos') return idA - idB;
                 if (orden === 'recientes') return idB - idA;
-
                 return 0;
             });
 
@@ -310,4 +402,6 @@
             visibles.forEach(f => tbody.appendChild(f));
         }
     </script>
+
+
 @endsection

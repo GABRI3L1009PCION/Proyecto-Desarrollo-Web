@@ -18,11 +18,16 @@ class SecretariaPanelController extends Controller
         $totalCursos = Course::count();
         $totalInscripciones = Enrollment::count();
 
-        // 🔹 Últimas inscripciones con relaciones (si existen)
-        $ultimasInscripciones = Enrollment::with(['student', 'course', 'branch'])
+        $ultimasInscripciones = Enrollment::with([
+            'student.user',
+            'offering.course',
+            'offering.teacher.user',
+            'offering.branch'
+        ])
             ->latest()
             ->take(5)
             ->get();
+
 
         return view('Secretaria.sec_panel', compact(
             'totalAlumnos',

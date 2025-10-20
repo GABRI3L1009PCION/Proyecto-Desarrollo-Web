@@ -159,8 +159,8 @@ Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(func
         ->name('secretaria.catedraticos.cursos');
 
     // 📊 REPORTES
-    Route::get('/reportes', [App\Http\Controllers\SecretariaReportController::class, 'index'])
-        ->name('secretaria.reportes');
+   /* Route::get('/reportes', [App\Http\Controllers\SecretariaReportController::class, 'index'])
+        ->name('secretaria.reportes');*/
 });
 
 // 🚪 Cierre de sesión

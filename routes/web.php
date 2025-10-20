@@ -7,11 +7,10 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SucursalAdminController;
 use App\Http\Controllers\AlumnoAdminController;
 use App\Http\Controllers\AdminCursosController;
-use App\Http\Controllers\AdminTeacherController; // ✅ Controlador de catedráticos
+use App\Http\Controllers\AdminTeacherController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SecretariaPanelController;
 use App\Http\Controllers\SecretariaAlumnoController;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -62,7 +61,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('administrador')->group(functi
     Route::put('/catedraticos/{id}', [AdminTeacherController::class, 'update'])->name('administrador.catedraticos.update');
     Route::delete('/catedraticos/{id}', [AdminTeacherController::class, 'destroy'])->name('administrador.catedraticos.destroy');
 
-    // ⚙️ ASIGNACIÓN DE CURSOS A CATEDRÁTICOS
+    // ⚙ ASIGNACIÓN DE CURSOS A CATEDRÁTICOS
     Route::post('/catedraticos/{id}/asignar-curso', [AdminTeacherController::class, 'asignarCurso'])
         ->name('administrador.catedraticos.asignar');
 
@@ -70,11 +69,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('administrador')->group(functi
     Route::get('/catedraticos/{id}/cursos', [AdminTeacherController::class, 'getCursos'])
         ->name('administrador.catedraticos.cursos');
 
-    // ✏️ ACTUALIZAR ASIGNACIÓN DE CURSO (versión web)
+    // ✏ ACTUALIZAR ASIGNACIÓN DE CURSO (versión web)
     Route::put('/asignacion/{id}', [AdminTeacherController::class, 'actualizarAsignacion'])
         ->name('administrador.asignacion.update');
 
-    // 🗑️ ELIMINAR ASIGNACIÓN DE CURSO (versión web)
+    // 🗑 ELIMINAR ASIGNACIÓN DE CURSO (versión web)
     Route::delete('/asignacion/{id}', [AdminTeacherController::class, 'eliminarAsignacion'])
         ->name('administrador.asignacion.destroy');
 
@@ -89,9 +88,33 @@ Route::middleware(['auth', 'role:admin'])->prefix('administrador')->group(functi
 });
 
 // ===== CATEDRÁTICO =====
-Route::middleware(['auth', 'role:catedratico'])->group(function () {
-    Route::get('/catedratico/panel', fn() => view('Catedratico.panel'))->name('catedratico.panel');
-});
+Route::middleware(['auth', 'role:catedratico'])
+    ->prefix('catedratico')
+    ->group(function () {
+
+        // 🏠 PANEL PRINCIPAL
+        Route::get('/panel', [App\Http\Controllers\CatedraticoPanelController::class, 'index'])
+            ->name('catedratico.panel');
+
+        // 👨‍🎓 Ver alumnos (modal desde el panel principal)
+        Route::get('/curso/{id}/alumnos', [App\Http\Controllers\CatedraticoCursosController::class, 'alumnos'])
+            ->name('catedratico.curso.alumnos');
+
+        // 📘 Módulo “Mis Cursos”
+        Route::get('/mis-cursos', [App\Http\Controllers\CatedraticoCursosController::class, 'index'])
+            ->name('catedratico.cursos');
+
+        // ======================================================
+        // 🎓 MÓDULO DE CALIFICACIONES
+        // ======================================================
+        Route::get('/calificaciones', [App\Http\Controllers\CatedraticoCalificacionesController::class, 'index'])
+            ->name('catedratico.calificaciones');
+
+        Route::post('/calificaciones/guardar', [App\Http\Controllers\CatedraticoCalificacionesController::class, 'guardar'])
+            ->name('catedratico.calificaciones.guardar');
+    });
+
+
 
 // ===== ESTUDIANTE =====
 Route::middleware(['auth', 'role:estudiante'])->group(function () {
@@ -110,7 +133,7 @@ Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(func
     Route::put('/alumnos/{id}', [SecretariaAlumnoController::class, 'update'])->name('secretaria.alumnos.update');
     Route::delete('/alumnos/{id}', [SecretariaAlumnoController::class, 'destroy'])->name('secretaria.alumnos.destroy');
 
-// 🧾 INSCRIPCIONES
+    // 🧾 INSCRIPCIONES
     Route::get('/inscripciones', [App\Http\Controllers\SecretariaInscripcionController::class, 'index'])
         ->name('secretaria.inscripciones');
     Route::post('/inscripciones', [App\Http\Controllers\SecretariaInscripcionController::class, 'store'])
@@ -134,13 +157,10 @@ Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(func
     Route::get('/catedraticos/{id}/cursos', [App\Http\Controllers\SecretariaCatedraticoController::class, 'cursos'])
         ->name('secretaria.catedraticos.cursos');
 
-
     // 📊 REPORTES
     Route::get('/reportes', [App\Http\Controllers\SecretariaReportController::class, 'index'])
         ->name('secretaria.reportes');
 });
-
-
 
 // 🚪 Cierre de sesión
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

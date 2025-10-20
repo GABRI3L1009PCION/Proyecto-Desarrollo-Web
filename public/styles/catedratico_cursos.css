@@ -1,0 +1,324 @@
+/* =======================================================
+🎓 CATEDRÁTICO — MÓDULO MIS CURSOS (CON FILTROS)
+======================================================= */
+
+/* === CONTENEDOR PRINCIPAL === */
+.main-content {
+    margin-left: 250px;
+    padding: 2rem;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+}
+
+/* === TOPBAR === */
+.topbar {
+    background: rgba(255,255,255,0.05);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+.topbar h2 {
+    color: var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.welcome {
+    background: rgba(255,255,255,0.08);
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    color: var(--text);
+}
+.welcome strong { color: var(--primary); }
+
+/* =======================================================
+📚 TABLA DE CURSOS
+======================================================= */
+.table-section {
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    animation: fadeUp .5s ease;
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* === HEADER ACCIONES === */
+.header-actions {
+    background: rgba(255,255,255,0.04);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.header-actions h3 {
+    color: var(--primary-light);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.header-actions h3 i { color: var(--primary-light); }
+
+/* === FILTROS Y BUSCADOR === */
+.actions-right {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .7rem;
+}
+
+.actions-right input[type="text"],
+.actions-right select {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text);
+    padding: .55rem .9rem;
+    border-radius: 10px;
+    font-size: .9rem;
+    outline: none;
+    transition: all .3s ease;
+    backdrop-filter: blur(6px);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
+
+.actions-right input[type="text"]:focus,
+.actions-right select:focus {
+    background: rgba(255,255,255,0.15);
+    border-color: var(--primary-light);
+    box-shadow: 0 0 8px var(--primary-light);
+}
+.actions-right input::placeholder { color: var(--muted); }
+
+/* =======================================================
+📋 TABLA GENERAL
+======================================================= */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+    font-size: .95rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    background: transparent;
+}
+.data-table th,
+.data-table td {
+    padding: 1rem 1.2rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.data-table th {
+    color: var(--primary-light);
+    text-transform: uppercase;
+    font-size: .85rem;
+    letter-spacing: .5px;
+    background: rgba(255,255,255,0.05);
+}
+.data-table tr:hover {
+    background: rgba(255,255,255,0.06);
+    transition: background .3s ease;
+}
+.data-table tr td[colspan] {
+    text-align: center;
+    color: var(--muted);
+    padding: 1.2rem;
+}
+
+/* =======================================================
+🟦 BOTÓN VER ALUMNOS
+======================================================= */
+.btn-ver {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    border: none;
+    color: #fff;
+    padding: .5rem .9rem;
+    border-radius: 8px;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: all .3s ease;
+    box-shadow: 0 5px 15px rgba(47,93,255,0.3);
+}
+.btn-ver:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(47,93,255,0.55);
+}
+.btn-ver:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+}
+
+/* =======================================================
+🪟 MODALES DE ALUMNOS
+======================================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-overlay.show {
+    display: flex;
+    animation: fadeIn .3s ease forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* === CONTENIDO DEL MODAL === */
+.modal-content {
+    background: #081f4d;
+    color: var(--text);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: zoomIn .4s ease;
+}
+@keyframes zoomIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-content h3 {
+    color: var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: 1rem;
+}
+.modal-content h3 i {
+    color: var(--primary-light);
+}
+
+.tabla-alumnos {
+    max-height: 380px;
+    overflow-y: auto;
+    margin-top: .5rem;
+    border-radius: 10px;
+}
+.tabla-alumnos::-webkit-scrollbar {
+    width: 6px;
+}
+.tabla-alumnos::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 6px;
+}
+
+/* === BUSCADOR DENTRO DEL MODAL === */
+.filtro-modal {
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: .6rem .8rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    font-size: .9rem;
+    outline: none;
+    transition: all .3s ease;
+}
+.filtro-modal:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 6px var(--primary-light);
+    background: rgba(255,255,255,0.12);
+}
+.filtro-modal::placeholder { color: var(--muted); }
+
+/* === BOTONES DEL MODAL === */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .8rem;
+    margin-top: 1rem;
+}
+.btn-cancel {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text);
+    padding: .5rem 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .3s ease;
+}
+.btn-cancel:hover {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+/* =======================================================
+📱 RESPONSIVE
+======================================================= */
+@media (max-width: 1100px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 1.5rem;
+    }
+}
+@media(max-width: 900px){
+    .header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .actions-right {
+        width: 100%;
+        justify-content: flex-start;
+        gap: .6rem;
+    }
+    .actions-right input,
+    .actions-right select {
+        flex: 1;
+        min-width: 140px;
+    }
+    .data-table th,
+    .data-table td {
+        font-size: .85rem;
+        padding: .6rem .8rem;
+    }
+}
+@media(max-width: 600px){
+    .actions-right {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .actions-right input,
+    .actions-right select {
+        width: 100%;
+    }
+}
+/* =======================================================
+🎨 CORRECCIÓN DE LISTAS DESPLEGABLES (SELECT)
+======================================================= */
+.actions-right select option {
+    background: #0e2358; /* fondo visible */
+    color: #fff;         /* texto blanco */
+}
+
+/* Para navegadores que ignoran el fondo */
+.actions-right select {
+    color-scheme: dark; /* fuerza contraste */
+}

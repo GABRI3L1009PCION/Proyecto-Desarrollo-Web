@@ -35,7 +35,7 @@
         <main class="main-content">
             <header class="topbar">
                 <h2><i class="fa-solid fa-building"></i> Gestión de Sucursales</h2>
-                <p>Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
+                <p class="welcome">Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
             </header>
 
             <section class="sucursales-section">
@@ -107,7 +107,12 @@
                 <label>Dirección</label>
                 <input type="text" name="direccion">
                 <label>Teléfono</label>
-                <input type="text" name="telefono">
+                <input type="text"
+                       name="telefono"
+                       maxlength="8"
+                       inputmode="numeric"
+                       pattern="[0-9]{8}"
+                       required>
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Guardar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalNuevaSucursal')">Cancelar</button>
@@ -128,7 +133,14 @@
                 <label>Dirección</label>
                 <input type="text" name="direccion" id="editDireccion">
                 <label>Teléfono</label>
-                <input type="text" name="telefono" id="editTelefono">
+                <input type="text"
+                       name="telefono"
+                       id="editTelefono"
+                       maxlength="8"
+                       inputmode="numeric"
+                       pattern="[0-9]{8}"
+                       required>
+
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Actualizar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalEditarSucursal')">Cancelar</button>
@@ -154,18 +166,91 @@
     </div>
 
     <script>
-        // === NUEVA SUCURSAL ===
+        // === MODALES ===
         const modalNueva = document.getElementById('modalNuevaSucursal');
+        const modalEditar = document.getElementById('modalEditarSucursal');
+        const modalEliminar = document.getElementById('modalEliminarSucursal');
         const btnNueva = document.getElementById('btnNuevaSucursal');
+
         btnNueva.addEventListener('click', () => modalNueva.classList.add('show'));
 
-        // === EDITAR ===
-        const modalEditar = document.getElementById('modalEditarSucursal');
+        // === ALERTA FLOTANTE ===
+        function showFloatingAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.className = alert ${type};
+            alert.textContent = message;
+            Object.assign(alert.style, {
+                position: 'fixed',
+                top: '15px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                zIndex: '9999',
+                background: type === 'error' ? '#e74c3c' : '#2ecc71',
+                color: '#fff',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                opacity: '0',
+                transition: 'opacity 0.3s ease'
+            });
+            document.body.appendChild(alert);
+            setTimeout(() => alert.style.opacity = '1', 50);
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 400);
+            }, 3500);
+        }
+
+        // === VALIDACIÓN SOLO PARA TELÉFONO ===
+        const telefonoRegex = /^[0-9]{8}$/;
+
+        // === FORM NUEVA SUCURSAL ===
+        const formNueva = document.querySelector('#modalNuevaSucursal form');
+        formNueva.setAttribute('novalidate', true);
+
+        formNueva.addEventListener('submit', async e => {
+            e.preventDefault();
+            const form = e.target;
+            const nombre = form.nombre.value.trim();
+            const direccion = form.direccion.value.trim();
+            const telefono = form.telefono.value.trim();
+
+            if (!telefonoRegex.test(telefono))
+                return showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
+
+            const data = { nombre, direccion, telefono };
+
+            try {
+                const res = await fetch("{{ route('administrador.sucursales.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    showFloatingAlert('✅ Sucursal creada correctamente.', 'success');
+                    cerrarModal('modalNuevaSucursal');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    const err = await res.json();
+                    showFloatingAlert(err.message || '❌ Error al crear la sucursal.');
+                }
+            } catch {
+                showFloatingAlert('⚠ Error de conexión con el servidor.');
+            }
+        });
+
+        // === FORM EDITAR SUCURSAL ===
         const formEditar = document.getElementById('formEditarSucursal');
+        formEditar.setAttribute('novalidate', true);
+
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEditar.action = `/administrador/sucursales/${id}`;
+                formEditar.setAttribute('data-id', id);
                 document.getElementById('editNombre').value = btn.dataset.nombre;
                 document.getElementById('editDireccion').value = btn.dataset.direccion;
                 document.getElementById('editTelefono').value = btn.dataset.telefono;
@@ -173,13 +258,48 @@
             });
         });
 
-        // === ELIMINAR ===
-        const modalEliminar = document.getElementById('modalEliminarSucursal');
+        formEditar.addEventListener('submit', async e => {
+            e.preventDefault();
+            const form = e.target;
+            const id = form.getAttribute('data-id');
+            const nombre = form.nombre.value.trim();
+            const direccion = form.direccion.value.trim();
+            const telefono = form.telefono.value.trim();
+
+            if (!telefonoRegex.test(telefono))
+                return showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
+
+            const data = { nombre, direccion, telefono, _method: 'PUT' };
+
+            try {
+                const res = await fetch(/administrador/sucursales/${id}, {
+                    method: 'POST', // usamos POST + _method PUT
+                        headers: {
+                        'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    showFloatingAlert('✅ Sucursal actualizada correctamente.', 'success');
+                    cerrarModal('modalEditarSucursal');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    const err = await res.json();
+                    showFloatingAlert(err.message || '❌ Error al actualizar la sucursal.');
+                }
+            } catch {
+                showFloatingAlert('⚠ Error de conexión con el servidor.');
+            }
+        });
+
+        // === ELIMINAR SUCURSAL ===
         const formEliminar = document.getElementById('formEliminarSucursal');
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = `/administrador/sucursales/${id}`;
+                formEliminar.action = /administrador/sucursales/${id};
                 modalEliminar.classList.add('show');
             });
         });
@@ -189,9 +309,11 @@
             if (e.key === 'Escape') [modalNueva, modalEditar, modalEliminar].forEach(m => m.classList.remove('show'));
         });
         function cerrarModal(id) { document.getElementById(id).classList.remove('show'); }
-        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); }));
+        document.querySelectorAll('.modal-overlay').forEach(o =>
+            o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); })
+        );
 
-        // === BUSCADOR Y ORDEN EN TIEMPO REAL ===
+        // === BUSCADOR Y ORDEN ===
         const buscarSucursal = document.getElementById('buscarSucursal');
         const ordenSucursales = document.getElementById('ordenSucursales');
         const tablaSucursales = document.getElementById('tablaSucursales');
@@ -204,39 +326,27 @@
             const orden = ordenSucursales.value;
             const filas = Array.from(tablaSucursales.querySelectorAll('tr'));
 
-            // Filtrar por nombre o dirección
             filas.forEach(fila => {
                 const nombre = fila.querySelector('.nombre')?.textContent.toLowerCase() || '';
                 const direccion = fila.cells[2]?.textContent.toLowerCase() || '';
-                fila.style.display =
-                    nombre.includes(texto) || direccion.includes(texto)
-                        ? ''
-                        : 'none';
+                fila.style.display = nombre.includes(texto) || direccion.includes(texto) ? '' : 'none';
             });
 
-            // Ordenar las filas visibles
             const visibles = filas.filter(f => f.style.display !== 'none');
             visibles.sort((a, b) => {
                 const idA = parseInt(a.querySelector('td').textContent.trim());
                 const idB = parseInt(b.querySelector('td').textContent.trim());
-
-                if (orden === 'alfabetico') {
-                    const nA = a.querySelector('.nombre').textContent.toLowerCase();
-                    const nB = b.querySelector('.nombre').textContent.toLowerCase();
-                    return nA.localeCompare(nB);
-                }
-                if (orden === 'inverso') {
-                    const nA = a.querySelector('.nombre').textContent.toLowerCase();
-                    const nB = b.querySelector('.nombre').textContent.toLowerCase();
-                    return nB.localeCompare(nA);
-                }
+                if (orden === 'alfabetico')
+                    return a.querySelector('.nombre').textContent.localeCompare(b.querySelector('.nombre').textContent);
+                if (orden === 'inverso')
+                    return b.querySelector('.nombre').textContent.localeCompare(a.querySelector('.nombre').textContent);
                 if (orden === 'antiguas') return idA - idB;
                 if (orden === 'recientes') return idB - idA;
-
                 return 0;
             });
 
             visibles.forEach(f => tablaSucursales.appendChild(f));
         }
     </script>
+
 @endsection

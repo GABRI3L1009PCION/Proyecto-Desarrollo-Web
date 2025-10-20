@@ -35,7 +35,8 @@
         <main class="main-content">
             <header class="topbar">
                 <h2><i class="fa-solid fa-user-graduate"></i> Gestión de Alumnos</h2>
-                <p>Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
+                <p class="welcome">Bienvenido, <strong>{{ Auth::user()->name }}</strong></p>
+
             </header>
 
             <section class="alumnos-section">
@@ -278,7 +279,7 @@
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEditar.action = `/administrador/alumnos/${id}`;
+                formEditar.action = /administrador/alumnos/${id};
                 document.getElementById('editNombre').value = btn.dataset.nombre;
                 document.getElementById('editTelefono').value = btn.dataset.telefono;
                 document.getElementById('editFecha').value = btn.dataset.fecha;
@@ -295,7 +296,7 @@
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = `/administrador/alumnos/${id}`;
+                formEliminar.action = /administrador/alumnos/${id};
                 modalEliminar.classList.add('show');
             });
         });

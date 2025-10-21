@@ -21,7 +21,6 @@
                 <li class="menu-item"><a href="{{ route('secretaria.alumnos') }}"><i class="fa-solid fa-user-graduate"></i> <span>Alumnos</span></a></li>
                 <li class="menu-item active"><a href="{{ route('secretaria.inscripciones') }}"><i class="fa-solid fa-clipboard-list"></i> <span>Inscripciones</span></a></li>
                 <li class="menu-item"><a href="{{ route('secretaria.catedraticos') }}"><i class="fa-solid fa-chalkboard-user"></i> <span>Catedráticos</span></a></li>
-                <li class="menu-item"><a href="{{ route('secretaria.reportes') }}"><i class="fa-solid fa-file-lines"></i> <span>Reportes</span></a></li>
             </ul>
 
             <form action="{{ route('logout') }}" method="POST" class="logout-form">

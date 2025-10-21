@@ -237,6 +237,48 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// === VALIDACIÓN FINAL DE TELÉFONO (8 dígitos obligatorios) ===
+document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', e => {
+        const telefonoInput = form.querySelector('input[name="telefono"]');
+        if (telefonoInput) {
+            const valor = telefonoInput.value.trim();
+            if (valor !== '' && !/^[0-9]{8}$/.test(valor)) {
+                e.preventDefault();
+                showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
+                return false;
+            }
+        }
+    });
+});
+// === VALIDACIÓN FINAL DE TELÉFONO Y HORARIO ===
+document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', e => {
+        // Validar teléfono
+        const telefonoInput = form.querySelector('input[name="telefono"]');
+        if (telefonoInput) {
+            const valor = telefonoInput.value.trim();
+            if (valor !== '' && !/^[0-9]{8}$/.test(valor)) {
+                e.preventDefault();
+                showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
+                return false;
+            }
+        }
+
+        // Validar horario (si existe en el formulario)
+        const horarioInput = form.querySelector('input[name="horario"]');
+        if (horarioInput) {
+            const valorHorario = horarioInput.value.trim();
+            if (!valorHorario) {
+                e.preventDefault();
+                showFloatingAlert('❌ Debes seleccionar un horario antes de guardar.');
+                return false;
+            }
+        }
+    });
+});
+
+
 // === CERRAR MODALES ===
 window.addEventListener('keydown', e => {
     if (e.key === 'Escape') [

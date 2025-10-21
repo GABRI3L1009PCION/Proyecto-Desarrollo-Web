@@ -106,7 +106,7 @@
                 @csrf
                 <div>
                     <label>Código</label>
-                    <input type="text" name="codigo" required>
+                    <input type="text" name="codigo" id="codigoCurso" placeholder="Formato CR-#####" required>
                 </div>
                 <div>
                     <label>Nombre del curso</label>
@@ -114,11 +114,11 @@
                 </div>
                 <div>
                     <label>Créditos</label>
-                    <input type="number" name="creditos" min="0" max="20">
+                    <input type="number" name="creditos" min="5" max="20" required>
                 </div>
                 <div class="campo-full">
                     <label>Descripción</label>
-                    <textarea name="descripcion" rows="3"></textarea>
+                    <textarea name="descripcion" rows="3" placeholder="Escribe una breve descripción del curso..." required></textarea>
                 </div>
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Guardar</button>
@@ -145,11 +145,11 @@
                 </div>
                 <div>
                     <label>Créditos</label>
-                    <input type="number" name="creditos" id="editCreditos" min="0" max="20">
+                    <input type="number" name="creditos" id="editCreditos" min="5" max="20" required>
                 </div>
                 <div class="campo-full">
                     <label>Descripción</label>
-                    <textarea name="descripcion" id="editDescripcion" rows="3"></textarea>
+                    <textarea name="descripcion" id="editDescripcion" rows="3" placeholder="Descripción del curso..." required></textarea>
                 </div>
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Actualizar</button>
@@ -176,31 +176,33 @@
     </div>
 
     <script>
-        // === NUEVO CURSO ===
+        // === MODALES ===
         const modalNuevo = document.getElementById('modalNuevoCurso');
         const modalEditar = document.getElementById('modalEditarCurso');
         const modalEliminar = document.getElementById('modalEliminarCurso');
         const btnNuevo = document.getElementById('btnNuevoCurso');
         btnNuevo.addEventListener('click', () => modalNuevo.classList.add('show'));
 
-        // === ALERTA FLOTANTE ===
+        // === ALERTAS FLOTANTES ===
         function showFloatingAlert(message, type = 'error') {
             const alert = document.createElement('div');
-            alert.className = `alert ${type}`;
             alert.textContent = message;
             Object.assign(alert.style, {
                 position: 'fixed',
                 top: '15px',
                 left: '50%',
                 transform: 'translateX(-50%)',
+                background:
+                    type === 'error' ? '#e74c3c' :
+                        type === 'warning' ? '#f1c40f' :
+                            '#2ecc71',
+                color: '#fff',
                 padding: '10px 20px',
                 borderRadius: '8px',
-                zIndex: '9999',
-                background: type === 'error' ? '#e74c3c' : '#2ecc71',
-                color: '#fff',
                 boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                zIndex: '9999',
                 opacity: '0',
-                transition: 'opacity 0.3s ease'
+                transition: 'opacity .3s ease'
             });
             document.body.appendChild(alert);
             setTimeout(() => alert.style.opacity = '1', 50);
@@ -212,6 +214,44 @@
 
         // === VALIDACIONES ===
         const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        const codigoRegex = /^CR-\d{1,5}$/; // Formato: CR-1 a CR-99999
+
+        // === FORMATO DE CÓDIGO ===
+        document.querySelectorAll('input[name="codigo"], #editCodigo').forEach(input => {
+            input.setAttribute('maxlength', '8'); // 🔒 CR-##### (8 total)
+            input.addEventListener('focus', e => {
+                if (!e.target.value) e.target.value = 'CR-'; // autocompletar prefijo
+            });
+            input.addEventListener('input', e => {
+                let val = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
+                if (!val.startsWith('CR-')) val = 'CR-' + val.replace(/^CR-/, '');
+                if (val.length > 8) {
+                    val = val.slice(0, 8);
+                    showFloatingAlert('⚠️ Solo se permiten hasta 5 dígitos después de CR-.', 'warning');
+                }
+                e.target.value = val;
+
+                if (!/^CR-\d*$/.test(val)) {
+                    showFloatingAlert('⚠️ Solo se permiten números después de CR-. Ejemplo: CR-12345', 'warning');
+                }
+            });
+        });
+
+        // === VALIDAR CRÉDITOS (mínimo 5, máximo 20) ===
+        document.querySelectorAll('input[name="creditos"], #editCreditos').forEach(input => {
+            input.addEventListener('input', e => {
+                let val = parseInt(e.target.value);
+                if (isNaN(val)) return;
+                if (val < 5) {
+                    e.target.value = 5;
+                    showFloatingAlert('⚠️ El mínimo de créditos es 5.', 'warning');
+                }
+                if (val > 20) {
+                    e.target.value = 20;
+                    showFloatingAlert('⚠️ El máximo de créditos es 20.', 'warning');
+                }
+            });
+        });
 
         // === FORM NUEVO CURSO ===
         const formNuevo = document.querySelector('#modalNuevoCurso form');
@@ -220,15 +260,19 @@
         formNuevo.addEventListener('submit', async e => {
             e.preventDefault();
             const form = e.target;
-            const codigo = form.codigo.value.trim();
+            const codigo = form.codigo.value.trim().toUpperCase();
             const nombre = form.nombre.value.trim();
-            const creditos = form.creditos.value.trim();
+            const creditos = parseInt(form.creditos.value.trim());
             const descripcion = form.descripcion.value.trim();
 
+            if (!codigoRegex.test(codigo))
+                return showFloatingAlert('❌ El código debe tener formato CR-### (solo números).');
             if (!nombreRegex.test(nombre))
                 return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
-            if (creditos && (creditos < 0 || creditos > 20))
-                return showFloatingAlert('❌ Los créditos deben ser un número entre 0 y 20.');
+            if (isNaN(creditos) || creditos < 5 || creditos > 20)
+                return showFloatingAlert('❌ Los créditos deben estar entre 5 y 20.');
+            if (!descripcion)
+                return showFloatingAlert('⚠️ La descripción no puede estar vacía.', 'warning');
 
             const data = { codigo, nombre, creditos, descripcion };
 
@@ -275,20 +319,24 @@
             e.preventDefault();
             const form = e.target;
             const id = form.getAttribute('data-id');
-            const codigo = form.codigo.value.trim();
+            const codigo = form.codigo.value.trim().toUpperCase();
             const nombre = form.nombre.value.trim();
-            const creditos = form.creditos.value.trim();
+            const creditos = parseInt(form.creditos.value.trim());
             const descripcion = form.descripcion.value.trim();
 
+            if (!codigoRegex.test(codigo))
+                return showFloatingAlert('❌ El código debe tener formato CR-### (solo números).');
             if (!nombreRegex.test(nombre))
                 return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
-            if (creditos && (creditos < 0 || creditos > 20))
-                return showFloatingAlert('❌ Los créditos deben ser un número entre 0 y 20.');
+            if (isNaN(creditos) || creditos < 5 || creditos > 20)
+                return showFloatingAlert('❌ Los créditos deben estar entre 5 y 20.');
+            if (!descripcion)
+                return showFloatingAlert('⚠️ La descripción no puede estar vacía.', 'warning');
 
             const data = { codigo, nombre, creditos, descripcion, _method: 'PUT' };
 
             try {
-                const res = await fetch(`/administrador/cursos/${id}`, { // ✅ corregido
+                const res = await fetch(`/administrador/cursos/${id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -315,7 +363,7 @@
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = `/administrador/cursos/${id}`; // ✅ corregido
+                formEliminar.action = `/administrador/cursos/${id}`;
                 modalEliminar.classList.add('show');
             });
         });
@@ -332,13 +380,11 @@
             const ordenSel = orden.value;
             const filas = Array.from(tabla.querySelectorAll('tr'));
 
-            // 🔍 Filtro por nombre
             filas.forEach(fila => {
                 const nombre = fila.querySelector('.nombre')?.textContent.toLowerCase();
                 fila.style.display = (!texto || nombre.includes(texto)) ? '' : 'none';
             });
 
-            // 🔄 Ordenamiento correcto
             const visibles = filas.filter(f => f.style.display !== 'none');
             visibles.sort((a, b) => {
                 const nA = a.querySelector('.nombre').textContent.toLowerCase();
@@ -364,5 +410,7 @@
             o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); })
         );
     </script>
+
+
 
 @endsection

@@ -1,7 +1,36 @@
 /* =======================================================
  💡 ADMIN — CATEDRÁTICOS (JS)
- 🔹 Versión 100% Web — CRUD, asignaciones y modales
+ 🔹 CRUD clásico con validaciones, alertas y select de horario
 ========================================================= */
+
+// === ALERTAS FLOTANTES ===
+function showFloatingAlert(message, type = 'error') {
+    const alert = document.createElement('div');
+    alert.textContent = message;
+    Object.assign(alert.style, {
+        position: 'fixed',
+        top: '15px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background:
+            type === 'error' ? '#e74c3c' :
+                type === 'warning' ? '#f1c40f' :
+                    '#2ecc71',
+        color: '#fff',
+        padding: '10px 20px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+        zIndex: '9999',
+        opacity: '0',
+        transition: 'opacity .3s ease'
+    });
+    document.body.appendChild(alert);
+    setTimeout(() => alert.style.opacity = '1', 50);
+    setTimeout(() => {
+        alert.style.opacity = '0';
+        setTimeout(() => alert.remove(), 400);
+    }, 3500);
+}
 
 // === NUEVO ===
 const modalNuevo = document.getElementById('modalNuevoCatedratico');
@@ -32,14 +61,14 @@ document.querySelectorAll('.btn-assign').forEach(btn => {
     });
 });
 
-// === VER CURSOS (versión 100% web con acciones) ===
+// === VER CURSOS (normal) ===
 document.querySelectorAll('.btn-ver-cursos').forEach(btn => {
     btn.addEventListener('click', () => {
         const modal = document.getElementById('modalCursos');
         const tabla = document.getElementById('tablaCursosAsignados');
         const nombreCat = document.getElementById('nombreCatedratico');
-
         const cursos = JSON.parse(btn.dataset.cursos || '[]');
+
         nombreCat.textContent = btn.dataset.nombre;
         tabla.innerHTML = '';
 
@@ -70,7 +99,6 @@ document.querySelectorAll('.btn-ver-cursos').forEach(btn => {
                     </tr>`;
             });
         }
-
         modal.classList.add('show');
     });
 });
@@ -101,7 +129,7 @@ function editarAsignacion(id, grade, level, ciclo, cupo, horario) {
     modal.classList.add('show');
 }
 
-// === MODAL ELIMINAR ASIGNACIÓN (nuevo modal moderno) ===
+// === MODAL ELIMINAR ASIGNACIÓN ===
 function abrirModalEliminarAsignacion(id) {
     const modal = document.getElementById('modalEliminarAsignacion');
     const form = document.getElementById('formEliminarAsignacion');
@@ -120,61 +148,94 @@ document.querySelectorAll('.btn-delete').forEach(btn => {
     });
 });
 
-// === BUSCAR Y ORDENAR ===
-const buscar = document.getElementById('buscarCatedratico');
-const orden = document.getElementById('ordenCatedraticos');
-[buscar, orden].forEach(el => el.addEventListener('input', filtrarYOrdenar));
+// === VALIDACIONES ===
+// Teléfono (solo números y máximo 8 dígitos)
+document.querySelectorAll('input[name="telefono"], #editTelefono').forEach(input => {
+    input.addEventListener('input', e => {
+        e.target.value = e.target.value.replace(/\D/g, '');
+        if (e.target.value.length > 8) e.target.value = e.target.value.slice(0, 8);
+    });
+});
 
-function filtrarYOrdenar() {
-    const texto = buscar.value.toLowerCase();
-    const ordenSel = orden.value;
-    const filas = Array.from(document.querySelectorAll('#tablaCatedraticos tr'));
+// Cupo (máximo 30)
+document.querySelectorAll('input[name="cupo"], #editCupo').forEach(input => {
+    input.addEventListener('input', e => {
+        let val = parseInt(e.target.value);
+        if (val > 30) {
+            e.target.value = 30;
+            showFloatingAlert('⚠️ El cupo máximo permitido es 30.', 'warning');
+        }
+        if (val < 1) e.target.value = 1;
+    });
+});
 
-    filas.forEach(fila => {
-        const nombre = fila.querySelector('.nombre')?.textContent.toLowerCase();
-        fila.style.display = (!texto || nombre.includes(texto)) ? '' : 'none';
+// === SELECT DE HORARIOS (se guarda como texto) ===
+function crearDropdownHorario(input) {
+    if (!input) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'dropdown-custom';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'dropdown-btn';
+    btn.textContent = input.value || 'Selecciona horario...';
+
+    const list = document.createElement('ul');
+    list.className = 'dropdown-list';
+    const horarios = [
+        'De 7:00 a 9:00',
+        'De 9:00 a 11:00',
+        'De 11:00 a 13:00',
+        'De 14:00 a 16:00',
+        'De 16:00 a 18:00'
+    ];
+
+    horarios.forEach(h => {
+        const li = document.createElement('li');
+        li.textContent = h;
+        li.addEventListener('click', () => {
+            input.value = h;
+            btn.textContent = h;
+            list.style.display = 'none';
+        });
+        list.appendChild(li);
     });
 
-    const visibles = filas.filter(f => f.style.display !== 'none');
-    visibles.sort((a, b) => {
-        const nA = a.querySelector('.nombre').textContent.toLowerCase();
-        const nB = b.querySelector('.nombre').textContent.toLowerCase();
-        const idA = parseInt(a.children[0].textContent);
-        const idB = parseInt(b.children[0].textContent);
-        if (ordenSel === 'alfabetico') return nA.localeCompare(nB);
-        if (ordenSel === 'inverso') return nB.localeCompare(nA);
-        if (ordenSel === 'antiguos') return idA - idB;
-        if (ordenSel === 'recientes') return idB - idA;
-        return 0;
-    });
+    wrapper.appendChild(btn);
+    wrapper.appendChild(list);
+    input.style.display = 'none';
+    input.parentElement.appendChild(wrapper);
 
-    const tbody = document.getElementById('tablaCatedraticos');
-    visibles.forEach(f => tbody.appendChild(f));
+    btn.addEventListener('click', () => {
+        list.style.display = list.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', e => {
+        if (!wrapper.contains(e.target)) list.style.display = 'none';
+    });
 }
 
-// === FILTRO POR CURSOS ===
-const filtroCursos = document.createElement('select');
-filtroCursos.id = 'filtroCursos';
-filtroCursos.innerHTML = `
-    <option value="todos">Todos</option>
-    <option value="con">Con cursos</option>
-    <option value="sin">Sin cursos</option>
+crearDropdownHorario(document.querySelector('#formAsignarCurso input[name="horario"]'));
+crearDropdownHorario(document.getElementById('editHorario'));
+
+// estilos dropdown
+const style = document.createElement('style');
+style.textContent = `
+.dropdown-custom { position: relative; width: 100%; }
+.dropdown-btn {
+    width: 100%; background: rgba(255,255,255,0.05);
+    color: #fff; border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px; padding: 8px 10px; text-align: left; cursor: pointer;
+}
+.dropdown-btn:hover { background: rgba(255,255,255,0.08); }
+.dropdown-list {
+    position: absolute; top: 100%; left: 0; width: 100%;
+    background: rgba(10,20,45,0.98); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; margin-top: 4px; max-height: 160px; overflow-y: auto;
+    display: none; z-index: 9999;
+}
+.dropdown-list li { padding: 8px 12px; color: #fff; cursor: pointer; }
+.dropdown-list li:hover { background: rgba(78,156,255,0.3); }
 `;
-document.querySelector('.actions-right').insertBefore(filtroCursos, document.getElementById('btnNuevoCatedratico'));
-filtroCursos.addEventListener('change', aplicarFiltroCursos);
-
-function aplicarFiltroCursos() {
-    const valor = filtroCursos.value;
-    document.querySelectorAll('#tablaCatedraticos tr').forEach(fila => {
-        const cursosCelda = fila.querySelector('.cursos');
-        const tieneCursos = cursosCelda && !cursosCelda.textContent.includes('Sin asignaciones');
-        fila.style.display = (
-            valor === 'todos' ||
-            (valor === 'con' && tieneCursos) ||
-            (valor === 'sin' && !tieneCursos)
-        ) ? '' : 'none';
-    });
-}
+document.head.appendChild(style);
 
 // === CERRAR MODALES ===
 window.addEventListener('keydown', e => {

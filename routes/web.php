@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminTeacherController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SecretariaPanelController;
 use App\Http\Controllers\SecretariaAlumnoController;
+use App\Http\Controllers\EstudiantePanelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -115,11 +116,28 @@ Route::middleware(['auth', 'role:catedratico'])
     });
 
 
-
 // ===== ESTUDIANTE =====
-Route::middleware(['auth', 'role:estudiante'])->group(function () {
-    Route::get('/estudiante/panel', fn() => view('Estudiante.panel'))->name('estudiante.panel');
-});
+Route::middleware(['auth', 'role:estudiante'])
+    ->prefix('estudiante')
+    ->group(function () {
+
+        // 🏠 PANEL PRINCIPAL
+        Route::get('/panel', [EstudiantePanelController::class, 'index'])
+            ->name('estudiante.panel');
+
+        // 📘 CURSOS (con notas dentro)
+        Route::get('/cursos', [EstudiantePanelController::class, 'misCursos'])
+            ->name('estudiante.cursos');
+
+        // 📊 DESEMPEÑO ACADÉMICO
+        Route::get('/desempeno', [EstudiantePanelController::class, 'miDesempeno'])
+            ->name('estudiante.desempeno');
+
+        // 👤 PERFIL PERSONAL
+        Route::get('/perfil', [EstudiantePanelController::class, 'perfil'])
+            ->name('estudiante.perfil');
+    });
+
 
 // ===== SECRETARÍA =====
 Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(function () {

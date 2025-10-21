@@ -251,3 +251,13 @@ body {
 .welcome strong {
     color: var(--primary);
 }
+/* 🟩 Administrador */
+.role-tag{
+    background: linear-gradient(90deg, #00b87a, #006644);
+    color: white;
+    font-weight: 600;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    display: inline-block;
+    box-shadow: 0 0 10px rgba(0, 184, 122, 0.8);
+}

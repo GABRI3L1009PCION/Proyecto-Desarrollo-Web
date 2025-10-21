@@ -13,6 +13,7 @@
             <div class="logo-area">
                 <img src="{{ asset('images/logo2.png') }}" alt="Logo">
                 <h3>Código Rapidito</h3>
+                <p class="role-tag">Administrador</p>
             </div>
 
             <ul class="menu">
@@ -154,7 +155,12 @@
 
                 <div>
                     <label>Teléfono</label>
-                    <input type="text" name="telefono">
+                    <input type="text"
+                           name="telefono"
+                            inputmode="numeric"
+                            maxlength="8"
+                            pattern="[0-9]{8}"
+                            title="Debe contener exactamente 8 dígitos numéricos.">
                 </div>
                 <div>
                     <label>Fecha de nacimiento</label>
@@ -210,7 +216,14 @@
 
                 <div>
                     <label>Teléfono</label>
-                    <input type="text" name="telefono" id="editTelefono">
+                    <input type="text"
+                           name="telefono"
+                           id="editTelefono"
+                            inputmode="numeric"
+                            maxlength="8"
+                            pattern="[0-9]{8}"
+                            title="Debe contener exactamente 8 dígitos numéricos.">
+
                 </div>
                 <div>
                     <label>Fecha de nacimiento</label>
@@ -300,14 +313,66 @@
             }, 3500);
         }
 
-        // === EDITAR ===
+        // === VALIDACIONES ===
+        const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        const phoneRegex = /^[0-9]{8}$/;
+
+        // === RESTRICCIÓN FECHA ===
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const maxDate = `${yyyy}-${mm}-${dd}`;
+
+        document.querySelectorAll('input[name="fecha_nacimiento"], #editFecha').forEach(input => {
+            input.max = maxDate;
+        });
+
+        function isValidAge(dateStr) {
+            const birthDate = new Date(dateStr);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age >= 16;
+        }
+
+        // === FORM NUEVO ALUMNO ===
+        const formNuevo = document.querySelector('#modalNuevoAlumno form');
+        formNuevo.setAttribute('novalidate', true);
+
+        formNuevo.addEventListener('submit', e => {
+            e.preventDefault(); // ✅ evita que se envíe si hay errores
+            const form = e.target;
+            const nombre = form.nombres.value.trim();
+            const telefono = form.telefono.value.trim();
+            const fecha = form.fecha_nacimiento.value;
+
+            if (!nameRegex.test(nombre))
+                return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
+            if (telefono && !phoneRegex.test(telefono))
+                return showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
+            if (fecha) {
+                if (new Date(fecha) > today)
+                    return showFloatingAlert('❌ La fecha de nacimiento no puede ser futura.');
+                if (!isValidAge(fecha))
+                    return showFloatingAlert('❌ El alumno debe tener al menos 16 años.');
+            }
+
+            // ✅ Si todo está correcto
+            form.submit();
+        });
+
+        // === FORM EDITAR ALUMNO ===
         const modalEditar = document.getElementById('modalEditarAlumno');
         const formEditar = document.getElementById('formEditarAlumno');
+        formEditar.setAttribute('novalidate', true);
 
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEditar.action = `/administrador/alumnos/${id}`; // ✅ corregido
+                formEditar.action = `/administrador/alumnos/${id}`;
                 document.getElementById('editNombre').value = btn.dataset.nombre;
                 document.getElementById('editTelefono').value = btn.dataset.telefono;
                 document.getElementById('editFecha').value = btn.dataset.fecha;
@@ -318,13 +383,35 @@
             });
         });
 
+        formEditar.addEventListener('submit', e => {
+            e.preventDefault(); // ✅ evita guardar sin pasar validaciones
+            const form = e.target;
+            const nombre = form.nombres.value.trim();
+            const telefono = form.telefono.value.trim();
+            const fecha = form.fecha_nacimiento.value;
+
+            if (!nameRegex.test(nombre))
+                return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
+            if (telefono && !phoneRegex.test(telefono))
+                return showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
+            if (fecha) {
+                if (new Date(fecha) > today)
+                    return showFloatingAlert('❌ La fecha de nacimiento no puede ser futura.');
+                if (!isValidAge(fecha))
+                    return showFloatingAlert('❌ El alumno debe tener al menos 16 años.');
+            }
+
+            // ✅ Si todo está correcto
+            form.submit();
+        });
+
         // === ELIMINAR ===
         const modalEliminar = document.getElementById('modalEliminarAlumno');
         const formEliminar = document.getElementById('formEliminarAlumno');
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
-                formEliminar.action = `/administrador/alumnos/${id}`; // ✅ corregido
+                formEliminar.action = `/administrador/alumnos/${id}`;
                 modalEliminar.classList.add('show');
             });
         });
@@ -389,5 +476,4 @@
             o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); })
         );
     </script>
-
 @endsection

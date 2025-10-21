@@ -11,6 +11,7 @@
             <div class="logo-area">
                 <img src="{{ asset('images/logo2.png') }}" alt="Logo">
                 <h3>Código Rapidito</h3>
+                <p class="role-tag">Administrador</p>
             </div>
 
             <ul class="menu">

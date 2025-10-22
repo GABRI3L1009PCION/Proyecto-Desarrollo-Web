@@ -1,17 +1,20 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Offering;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class OfferingController extends Controller
 {
     // GET /offerings
     public function index()
     {
-        // Trae las ofertas con curso, docente y sucursal
         return response()->json(
-            Offering::with(['course', 'teacher', 'branch'])->paginate(10)
+            Offering::with(['course', 'teacher.user', 'branch'])
+                ->orderByDesc('anio')
+                ->paginate(10)
         );
     }
 
@@ -30,16 +33,41 @@ class OfferingController extends Controller
             'level'      => 'required|in:Principiantes I,Principiantes II,Avanzados I,Avanzados II',
         ]);
 
+        // 🔹 Evitar duplicados (mismo curso-docente-sucursal-grado-nivel-año-ciclo)
+        $exists = Offering::where('course_id', $validated['course_id'])
+            ->where('teacher_id', $validated['teacher_id'])
+            ->where('branch_id', $validated['branch_id'])
+            ->where('grade', $validated['grade'])
+            ->where('level', $validated['level'])
+            ->where('anio', $validated['anio'])
+            ->where('ciclo', $validated['ciclo'])
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ Ya existe una oferta con los mismos parámetros.'
+            ], 422);
+        }
+
         $offering = Offering::create($validated);
 
-        return response()->json($offering, 201);
+        return response()->json([
+            'success'  => true,
+            'message'  => '✅ Oferta creada correctamente.',
+            'offering' => $offering->load(['course', 'teacher.user', 'branch'])
+        ], Response::HTTP_CREATED);
     }
 
     // GET /offerings/{id}
     public function show($id)
     {
-        $offering = Offering::with(['course', 'teacher', 'branch', 'enrollments'])->findOrFail($id);
-        return response()->json($offering);
+        $offering = Offering::with(['course', 'teacher.user', 'branch', 'enrollments.student.user'])->findOrFail($id);
+
+        return response()->json([
+            'success'  => true,
+            'offering' => $offering
+        ]);
     }
 
     // PUT/PATCH /offerings/{id}
@@ -60,15 +88,32 @@ class OfferingController extends Controller
 
         $offering->update($validated);
 
-        return response()->json($offering);
+        return response()->json([
+            'success'  => true,
+            'message'  => '✏️ Oferta actualizada correctamente.',
+            'offering' => $offering->load(['course', 'teacher.user', 'branch'])
+        ]);
     }
 
     // DELETE /offerings/{id}
     public function destroy($id)
     {
-        $offering = Offering::findOrFail($id);
+        $offering = Offering::withCount('enrollments')->findOrFail($id);
+
+        // 🔸 Evitar eliminar si tiene alumnos inscritos
+        if ($offering->enrollments_count > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ No se puede eliminar una oferta con alumnos inscritos.',
+                'count'   => $offering->enrollments_count
+            ], 409);
+        }
+
         $offering->delete();
 
-        return response()->json(['message' => 'Oferta eliminada']);
+        return response()->json([
+            'success' => true,
+            'message' => '🗑️ Oferta eliminada correctamente.'
+        ], Response::HTTP_OK);
     }
 }

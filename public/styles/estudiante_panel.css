@@ -1,0 +1,154 @@
+/* =======================================================
+🎓 PANEL DE ESTUDIANTE — CÓDIGO RAPIDITO
+========================================================= */
+
+body {
+    background: radial-gradient(circle at top left, #0d1f4b, #071430);
+    background-size: 200% 200%;
+    animation: fondoMovimiento 10s ease infinite alternate;
+}
+
+@keyframes fondoMovimiento {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* === CONTENIDO === */
+.main-content {
+    margin-left: 250px;
+    padding: 2rem;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+}
+
+/* === TOPBAR === */
+.topbar {
+    background: rgba(255,255,255,0.05);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+.topbar h2 {
+    color: #c8d8ff;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.topbar h2 i {
+    color: #3671ff;
+}
+.welcome {
+    background: rgba(255,255,255,0.08);
+    padding: .5rem 1rem;
+    border-radius: 8px;
+    color: #c8d8ff;
+}
+
+/* === TARJETAS === */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+.card {
+    background: rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    transition: 0.3s;
+}
+.card:hover {
+    background: rgba(255,255,255,0.09);
+    transform: translateY(-4px);
+}
+.card .icon {
+    color: #3671ff;
+    font-size: 1.8rem;
+    margin-bottom: 0.6rem;
+}
+.card h3 {
+    font-size: 1.8rem;
+    color: white;
+    margin: 0.3rem 0;
+}
+.card p {
+    color: #b9c9ff;
+    font-size: 0.95rem;
+}
+
+/* === NOTAS RECIENTES === */
+.recent-section {
+    background: rgba(255,255,255,0.05);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.recent-section h3 {
+    color: #c8d8ff;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.recent-section h3 i {
+    color: #3671ff;
+}
+
+/* === NOTIFICACIONES === */
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.notification-item {
+    display: flex;
+    gap: 1rem;
+    background: rgba(255,255,255,0.04);
+    padding: 1rem 1.3rem;
+    border-radius: 10px;
+    align-items: flex-start;
+    transition: 0.3s;
+}
+.notification-item:hover {
+    background: rgba(255,255,255,0.07);
+}
+.notification-item .icono {
+    color: #3671ff;
+    font-size: 1.4rem;
+    margin-top: 0.3rem;
+}
+.notification-item p {
+    margin: 0;
+}
+.notification-item span {
+    color: #a9baff;
+    font-size: 0.95rem;
+}
+.notification-item .fecha {
+    font-size: 0.85rem;
+    color: #6f7fb9;
+    margin-top: 0.4rem;
+}
+.no-notas {
+    text-align: center;
+    color: #7e8fd0;
+    font-style: italic;
+}
+/* === ETIQUETA DEL ROL (azul neón) === */
+.role-tag {
+    background: linear-gradient(90deg, #3671ff, #1a3b80);
+    color: white;
+    font-weight: 600;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    display: inline-block;
+    box-shadow: 0 0 10px rgba(54, 113, 255, 0.8);
+    margin-top: 0.3rem;
+}

@@ -28,9 +28,7 @@
                 <li class="menu-item">
                     <a href="{{ route('secretaria.catedraticos') }}"><i class="fa-solid fa-chalkboard-user"></i> <span>Catedráticos</span></a>
                 </li>
-                <li class="menu-item">
-                    <a href="{{ route('secretaria.reportes') }}"><i class="fa-solid fa-file-lines"></i> <span>Reportes</span></a>
-                </li>
+                
             </ul>
 
             <div class="logout-area">

@@ -11,7 +11,9 @@ use App\Http\Controllers\AdminTeacherController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SecretariaPanelController;
 use App\Http\Controllers\SecretariaAlumnoController;
-use App\Http\Controllers\SecretariaInscripcionController;
+use App\Http\Controllers\EstudiantePanelController;
+use App\Http\Controllers\AdministradorReportesController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -84,8 +86,24 @@ Route::middleware(['auth', 'role:admin'])->prefix('administrador')->group(functi
     Route::put('/cursos/{id}', [AdminCursosController::class, 'update'])->name('administrador.cursos.update');
     Route::delete('/cursos/{id}', [AdminCursosController::class, 'destroy'])->name('administrador.cursos.destroy');
 
-    // 📊 REPORTES
-    Route::get('/reportes', [ReportController::class, 'index'])->name('administrador.reportes');
+// 📊 REPORTES — Panel del Administrador
+    Route::get('/reportes', [AdministradorReportesController::class, 'index'])
+        ->name('administrador.reportes');
+
+// ✅ Endpoints AJAX de reportes (para el botón “Generar”)
+    Route::get('/reportes/inscritos', [AdministradorReportesController::class, 'inscritos'])
+        ->name('administrador.reportes.inscritos');
+
+    Route::get('/reportes/grado-nivel', [AdministradorReportesController::class, 'gradoNivel'])
+        ->name('administrador.reportes.gradoNivel');
+
+    Route::get('/reportes/notas', [AdministradorReportesController::class, 'notas'])
+        ->name('administrador.reportes.notas');
+
+    // ✅ EXPORTAR A EXCEL
+    Route::get('/reportes/exportar/inscritos', [AdministradorReportesController::class, 'exportarInscritos'])->name('administrador.reportes.export.inscritos');
+    Route::get('/reportes/exportar/grado-nivel', [AdministradorReportesController::class, 'exportarGradoNivel'])->name('administrador.reportes.export.gradoNivel');
+    Route::get('/reportes/exportar/notas', [AdministradorReportesController::class, 'exportarNotas'])->name('administrador.reportes.export.notas');
 });
 
 // ===== CATEDRÁTICO =====
@@ -116,11 +134,28 @@ Route::middleware(['auth', 'role:catedratico'])
     });
 
 
-
 // ===== ESTUDIANTE =====
-Route::middleware(['auth', 'role:estudiante'])->group(function () {
-    Route::get('/estudiante/panel', fn() => view('Estudiante.panel'))->name('estudiante.panel');
-});
+Route::middleware(['auth', 'role:estudiante'])
+    ->prefix('estudiante')
+    ->group(function () {
+
+        // 🏠 PANEL PRINCIPAL
+        Route::get('/panel', [EstudiantePanelController::class, 'index'])
+            ->name('estudiante.panel');
+
+        // 📘 CURSOS (con notas dentro)
+        Route::get('/cursos', [EstudiantePanelController::class, 'misCursos'])
+            ->name('estudiante.cursos');
+
+        // 📊 DESEMPEÑO ACADÉMICO
+        Route::get('/desempeno', [EstudiantePanelController::class, 'miDesempeno'])
+            ->name('estudiante.desempeno');
+
+        // 👤 PERFIL PERSONAL
+        Route::get('/perfil', [EstudiantePanelController::class, 'perfil'])
+            ->name('estudiante.perfil');
+    });
+
 
 // ===== SECRETARÍA =====
 Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(function () {
@@ -159,8 +194,8 @@ Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(func
         ->name('secretaria.catedraticos.cursos');
 
     // 📊 REPORTES
-   /* Route::get('/reportes', [App\Http\Controllers\SecretariaReportController::class, 'index'])
-        ->name('secretaria.reportes');*/
+    Route::get('/reportes', [App\Http\Controllers\SecretariaReportController::class, 'index'])
+        ->name('secretaria.reportes');
 });
 
 // 🚪 Cierre de sesión

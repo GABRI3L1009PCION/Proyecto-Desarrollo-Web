@@ -40,3 +40,12 @@
 .welcome strong {
     color: var(--primary);
 }
+.role-tag {
+    background: linear-gradient(90deg, #ff4d4d, #a31919);
+    color: white;
+    font-weight: 600;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    display: inline-block;
+    box-shadow: 0 0 12px rgba(255, 77, 77, 0.8);
+}

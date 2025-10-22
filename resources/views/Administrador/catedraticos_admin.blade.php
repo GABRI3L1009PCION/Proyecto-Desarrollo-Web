@@ -125,23 +125,45 @@
             <h3><i class="fa-solid fa-plus"></i> Nuevo Catedrático</h3>
             <form method="POST" action="{{ route('administrador.catedraticos.store') }}" class="form-modal">
                 @csrf
-                <div>
-                    <label>Usuario</label>
-                    <select name="user_id" required>
-                        <option value="">Seleccione un usuario...</option>
-                        @foreach(App\Models\User::where('role','catedratico')->whereDoesntHave('teacher')->get() as $u)
-                            <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->email }})</option>
-                        @endforeach
-                    </select>
+                <div class="custom-select-wrapper campo-full">
+                    <label>Usuario asociado (rol catedrático)</label>
+                    <div class="custom-select" id="selectUsuarioCustom">
+                        <div class="selected-option">Selecciona un usuario...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterUsuarios" placeholder="🔍 Buscar usuario..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach(App\Models\User::where('role','catedratico')->whereDoesntHave('teacher')->get() as $u)
+                                    <div class="option" data-value="{{ $u->id }}">
+                                        <div class="opt-main">👤 {{ $u->name }}</div>
+                                        <div class="opt-sub">📧 {{ $u->email }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="user_id" id="userHidden" required>
                 </div>
-                <div>
+
+                <div class="custom-select-wrapper campo-full">
                     <label>Sucursal</label>
-                    <select name="branch_id" required>
-                        @foreach(App\Models\Branch::all() as $b)
-                            <option value="{{ $b->id }}">{{ $b->nombre }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectSucursalCustom">
+                        <div class="selected-option">Selecciona una sucursal...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterSucursales" placeholder="🔍 Buscar sucursal..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach(App\Models\Branch::all() as $b)
+                                    <div class="option" data-value="{{ $b->id }}">
+                                        <div class="opt-main">🏫 {{ $b->nombre }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="branch_id" id="branchHidden" required>
                 </div>
+
                 <div>
                     <label>Nombre completo</label>
                     <input type="text" name="nombres" required>
@@ -173,14 +195,25 @@
                     <label>Teléfono</label>
                     <input type="text" name="telefono" id="editTelefono">
                 </div>
-                <div>
+                <div class="custom-select-wrapper campo-full">
                     <label>Sucursal</label>
-                    <select name="branch_id" id="editBranch" required>
-                        @foreach(App\Models\Branch::all() as $b)
-                            <option value="{{ $b->id }}">{{ $b->nombre }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectSucursalEdit">
+                        <div class="selected-option">Selecciona una sucursal...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterSucursalesEdit" placeholder="🔍 Buscar sucursal..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach(App\Models\Branch::all() as $b)
+                                    <div class="option" data-value="{{ $b->id }}">
+                                        <div class="opt-main">🏫 {{ $b->nombre }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="branch_id" id="branchHiddenEdit" required>
                 </div>
+
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Actualizar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalEditarCatedratico')">Cancelar</button>
@@ -193,25 +226,51 @@
     <div id="modalAsignarCurso" class="modal-overlay">
         <div class="modal-content">
             <h3><i class="fa-solid fa-chalkboard"></i> Asignar Curso al Catedrático</h3>
+
             <form method="POST" id="formAsignarCurso" class="form-modal form-grid-2">
                 @csrf
-                <div>
+
+                <!-- === CURSO === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Curso</label>
-                    <select name="course_id" required>
-                        <option value="">Seleccione un curso...</option>
-                        @foreach(App\Models\Course::all() as $c)
-                            <option value="{{ $c->id }}">{{ $c->nombre }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectCursoCustom">
+                        <div class="selected-option">Seleccione un curso...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterCursos" placeholder="🔍 Buscar curso..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach(App\Models\Course::all() as $c)
+                                    <div class="option" data-value="{{ $c->id }}">
+                                        <div class="opt-main">📘 {{ $c->nombre }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="course_id" id="courseHidden" required>
                 </div>
-                <div>
+
+                <!-- === SUCURSAL === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Sucursal</label>
-                    <select name="branch_id" required>
-                        @foreach(App\Models\Branch::all() as $b)
-                            <option value="{{ $b->id }}">{{ $b->nombre }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectSucursalAsignar">
+                        <div class="selected-option">Seleccione una sucursal...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterSucursalAsignar" placeholder="🔍 Buscar sucursal..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach(App\Models\Branch::all() as $b)
+                                    <div class="option" data-value="{{ $b->id }}">
+                                        <div class="opt-main">🏫 {{ $b->nombre }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="branch_id" id="branchHiddenAsignar" required>
                 </div>
+
+                <!-- === GRADO Y NIVEL === -->
                 <div>
                     <label>Grado</label>
                     <select name="grade" required>
@@ -219,6 +278,7 @@
                         <option value="Expertos">Expertos</option>
                     </select>
                 </div>
+
                 <div>
                     <label>Nivel</label>
                     <select name="level" required>
@@ -228,28 +288,61 @@
                         <option value="Avanzados II">Avanzados II</option>
                     </select>
                 </div>
+
+                <!-- === AÑO === -->
                 <div>
                     <label>Año</label>
                     <input type="number" name="anio" value="{{ date('Y') }}" readonly
                            style="background:rgba(255,255,255,0.05); color:var(--muted);">
                 </div>
-                <div>
+
+                <!-- === CICLO === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Ciclo</label>
-                    <select name="ciclo" required>
-                        <option value="">Seleccione ciclo...</option>
-                        @for($i = 1; $i <= 10; $i++)
-                            <option value="{{ $i }}">Ciclo {{ $i }}</option>
-                        @endfor
-                    </select>
+                    <div class="custom-select" id="selectCicloCustom">
+                        <div class="selected-option">Seleccione ciclo...</div>
+                        <div class="options-list">
+                            <div class="options-container">
+                                @for($i = 1; $i <= 10; $i++)
+                                    <div class="option" data-value="{{ $i }}">Ciclo {{ $i }}</div>
+                                @endfor
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="ciclo" id="cicloHidden" required>
                 </div>
-                <div>
+
+                <!-- === HORARIO (estilo final sin botón blanco) === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Horario</label>
-                    <input type="text" name="horario" placeholder="Ej. Lunes 8:00 - 10:00">
+                    <div class="custom-select horario-input" id="horarioEditableCustom">
+                        <div class="selected-option" id="horarioSelected">
+                            <span id="horarioTexto">Selecciona el horario...</span>
+                            <i class="fa-solid fa-clock reloj-icono"></i>
+                        </div>
+                        <div class="options-list">
+                            <input type="text" id="inputHorario" name="horario"
+                                   placeholder="Escribe o busca horario..."
+                                   autocomplete="off" required>
+                            <div class="options-container">
+                                <div class="option">De 7:00 a 9:00</div>
+                                <div class="option">De 9:00 a 11:00</div>
+                                <div class="option">De 11:00 a 13:00</div>
+                                <div class="option">De 14:00 a 16:00</div>
+                                <div class="option">De 16:00 a 18:00</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+
+                <!-- === CUPO === -->
                 <div>
                     <label>Cupo</label>
-                    <input type="number" name="cupo" value="30" min="1">
+                    <input type="number" name="cupo" id="inputCupo" value="30" min="10" max="40" required>
                 </div>
+
+                <!-- === BOTONES === -->
                 <div class="modal-actions" style="grid-column: span 2;">
                     <button type="submit" class="btn-confirm">Asignar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalAsignarCurso')">Cancelar</button>
@@ -309,16 +402,17 @@
         </div>
     </div>
 
-
-
     <!-- === MODAL EDITAR ASIGNACIÓN DE CURSO === -->
     <div id="modalEditarAsignacion" class="modal-overlay">
         <div class="modal-content" style="max-width:580px;">
             <h3><i class="fa-solid fa-pen"></i> Editar Asignación de Curso</h3>
-            <form id="formEditarAsignacion" class="form-modal">
+
+            <form id="formEditarAsignacion" class="form-modal form-grid-2">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="offering_id" id="editOfferingId">
+
+                <!-- === GRADO Y NIVEL === -->
                 <div>
                     <label>Grado</label>
                     <select name="grade" id="editGrade" required>
@@ -326,6 +420,7 @@
                         <option value="Expertos">Expertos</option>
                     </select>
                 </div>
+
                 <div>
                     <label>Nivel</label>
                     <select name="level" id="editLevel" required>
@@ -335,22 +430,52 @@
                         <option value="Avanzados II">Avanzados II</option>
                     </select>
                 </div>
-                <div>
+
+                <!-- === CICLO PERSONALIZADO === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Ciclo</label>
-                    <select name="ciclo" id="editCiclo" required>
-                        @for($i = 1; $i <= 10; $i++)
-                            <option value="{{ $i }}">Ciclo {{ $i }}</option>
-                        @endfor
-                    </select>
+                    <div class="custom-select" id="selectCicloEdit">
+                        <div class="selected-option">Selecciona ciclo...</div>
+                        <div class="options-list">
+                            <div class="options-container">
+                                @for($i = 1; $i <= 10; $i++)
+                                    <div class="option" data-value="{{ $i }}">Ciclo {{ $i }}</div>
+                                @endfor
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="ciclo" id="cicloHiddenEdit" required>
                 </div>
+
+                <!-- === CUPO (con validación de 10 a 40) === -->
                 <div>
                     <label>Cupo</label>
-                    <input type="number" name="cupo" id="editCupo" min="1" required>
+                    <input type="number" name="cupo" id="editCupo" value="30" min="10" max="40" required>
                 </div>
-                <div style="grid-column: span 2;">
+
+                <!-- === HORARIO PERSONALIZADO (idéntico al de asignar curso) === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Horario</label>
-                    <input type="text" name="horario" id="editHorario" placeholder="Ej. Lunes 8:00 - 10:00" required>
+                    <div class="custom-select horario-input" id="horarioEditableEdit">
+                        <div class="selected-option" id="horarioSelectedEdit">
+                            <span id="horarioTextoEdit">Selecciona el horario...</span>
+                        </div>
+                        <div class="options-list">
+                            <input type="text" id="inputHorarioEdit" name="horario"
+                                   placeholder="Escribe o busca horario..."
+                                   autocomplete="off" required>
+                            <div class="options-container">
+                                <div class="option">De 7:00 a 9:00</div>
+                                <div class="option">De 9:00 a 11:00</div>
+                                <div class="option">De 11:00 a 13:00</div>
+                                <div class="option">De 14:00 a 16:00</div>
+                                <div class="option">De 16:00 a 18:00</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- === BOTONES === -->
                 <div class="modal-actions" style="grid-column: span 2;">
                     <button type="submit" class="btn-confirm">Guardar cambios</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalEditarAsignacion')">Cancelar</button>
@@ -358,6 +483,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- === MODAL ELIMINAR ASIGNACIÓN DE CURSO === -->
     <div id="modalEliminarAsignacion" class="modal-overlay">
@@ -376,6 +502,25 @@
             </form>
         </div>
     </div>
+    <script>
+        @if (session('success'))
+            window.sessionSuccess = "{{ session('success') }}";
+        @endif
+            @if (session('updated'))
+            window.sessionUpdated = "{{ session('updated') }}";
+        @endif
+            @if (session('deleted'))
+            window.sessionDeleted = "{{ session('deleted') }}";
+        @endif
+    </script>
 
     <script src="{{ asset('js/admin_catedraticos.js') }}"></script>
+    <script>
+        createCustomSelect('selectCursoCustom', 'courseHidden', 'filterCursos');
+        createCustomSelect('selectSucursalAsignar', 'branchHiddenAsignar', 'filterSucursalAsignar');
+        createCustomSelect('selectCicloCustom', 'cicloHidden', null);
+        createCustomSelect('selectHorarioCustom', 'horarioHidden', null);
+
+    </script>
+
 @endsection

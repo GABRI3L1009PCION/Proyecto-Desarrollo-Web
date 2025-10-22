@@ -175,3 +175,30 @@ input[disabled] {
     background: rgba(255,255,255,0.05);
     color: #999;
 }
+/* === ESTILO PERSONALIZADO PARA SELECT (MENU DESPLEGABLE) === */
+.actions-right select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: .5rem 2rem .5rem .8rem;
+    cursor: pointer;
+    position: relative;
+}
+
+/* Color del fondo del menú desplegable (lista de opciones) */
+.actions-right select option {
+    background-color: rgba(8, 26, 59, 0.97);
+    color: #fff;
+    border: none;
+}
+
+/* Hover y opción seleccionada dentro del desplegable */
+.actions-right select option:hover,
+.actions-right select option:checked {
+    background-color: var(--primary-light);
+    color: #fff;
+}

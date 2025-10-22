@@ -134,21 +134,34 @@
             <form method="POST" action="{{ route('secretaria.alumnos.store') }}" class="form-modal">
                 @csrf
 
-                <div class="campo-full">
+                <!-- === SELECT PERSONALIZADO: USUARIO ASOCIADO === -->
+                <div class="campo-full custom-select-wrapper">
                     <label>Usuario asociado (rol estudiante)</label>
-                    <select name="user_id" required>
-                        <option value="">Selecciona un usuario...</option>
-                        @foreach($usuariosNoRegistrados as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} — {{ $user->email }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectUsuarioAlumno">
+                        <div class="selected-option">Selecciona un usuario...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterUsuariosAlumno" placeholder="🔍 Buscar usuario..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach($usuariosNoRegistrados as $user)
+                                    <div class="option" data-value="{{ $user->id }}">
+                                        <div class="opt-main">{{ $user->name }}</div>
+                                        <div class="opt-sub">📧 {{ $user->email }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="user_id" id="usuarioAlumnoHidden" required>
                 </div>
 
+                <!-- === NOMBRE === -->
                 <div class="campo-full">
                     <label>Nombre completo</label>
                     <input type="text" name="nombres" required>
                 </div>
 
+                <!-- === TELÉFONO Y FECHA NACIMIENTO === -->
                 <div>
                     <label>Teléfono</label>
                     <input type="text" name="telefono">
@@ -158,6 +171,7 @@
                     <input type="date" name="fecha_nacimiento">
                 </div>
 
+                <!-- === NIVEL Y GRADO === -->
                 <div>
                     <label>Nivel</label>
                     <select name="level" required>
@@ -175,15 +189,27 @@
                     </select>
                 </div>
 
-                <div class="campo-full">
+                <!-- === SELECT PERSONALIZADO: SUCURSAL === -->
+                <div class="campo-full custom-select-wrapper">
                     <label>Sucursal</label>
-                    <select name="branch_id" required>
-                        @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}">{{ $branch->nombre }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectSucursalAlumno">
+                        <div class="selected-option">Seleccione una sucursal...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterSucursalesAlumno" placeholder="🔍 Buscar sucursal..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach($branches as $branch)
+                                    <div class="option" data-value="{{ $branch->id }}">
+                                        <div class="opt-main">🏫 {{ $branch->nombre }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="branch_id" id="sucursalAlumnoHidden" required>
                 </div>
 
+                <!-- === BOTONES === -->
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Guardar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalNuevoAlumno')">Cancelar</button>
@@ -191,6 +217,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- === MODAL EDITAR ALUMNO === -->
     <div id="modalEditarAlumno" class="modal-overlay">
@@ -200,6 +227,7 @@
                 @csrf
                 @method('PUT')
 
+                <!-- === NOMBRE Y TELÉFONO === -->
                 <div class="campo-full">
                     <label>Nombre completo</label>
                     <input type="text" name="nombres" id="editNombre" required>
@@ -209,11 +237,14 @@
                     <label>Teléfono</label>
                     <input type="text" name="telefono" id="editTelefono">
                 </div>
+
+                <!-- === FECHA NACIMIENTO === -->
                 <div>
                     <label>Fecha de nacimiento</label>
                     <input type="date" name="fecha_nacimiento" id="editFecha">
                 </div>
 
+                <!-- === NIVEL Y GRADO === -->
                 <div>
                     <label>Nivel</label>
                     <select name="level" id="editLevel" required>
@@ -223,6 +254,7 @@
                         <option value="Avanzados II">Avanzados II</option>
                     </select>
                 </div>
+
                 <div>
                     <label>Grado</label>
                     <select name="grade" id="editGrade" required>
@@ -231,15 +263,27 @@
                     </select>
                 </div>
 
-                <div class="campo-full">
+                <!-- === SELECT PERSONALIZADO: SUCURSAL (EDITAR) === -->
+                <div class="campo-full custom-select-wrapper">
                     <label>Sucursal</label>
-                    <select name="branch_id" id="editBranch" required>
-                        @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}">{{ $branch->nombre }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectSucursalAlumnoEdit">
+                        <div class="selected-option" id="selectedSucursalAlumnoEdit">Seleccione una sucursal...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterSucursalesAlumnoEdit" placeholder="🔍 Buscar sucursal..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach($branches as $branch)
+                                    <div class="option" data-value="{{ $branch->id }}">
+                                        <div class="opt-main">🏫 {{ $branch->nombre }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="branch_id" id="branchAlumnoHiddenEdit" required>
                 </div>
 
+                <!-- === BOTONES === -->
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Actualizar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalEditarAlumno')">Cancelar</button>
@@ -247,6 +291,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- === MODAL ELIMINAR ALUMNO === -->
     <div id="modalEliminarAlumno" class="modal-overlay">
@@ -265,14 +310,116 @@
     </div>
 
     <script>
-        // === NUEVO ALUMNO ===
+        // === MODALES ===
         const modalNuevo = document.getElementById('modalNuevoAlumno');
+        const modalEditar = document.getElementById('modalEditarAlumno');
+        const modalEliminar = document.getElementById('modalEliminarAlumno');
         const btnNuevo = document.getElementById('btnNuevoAlumno');
         btnNuevo.addEventListener('click', () => modalNuevo.classList.add('show'));
 
-        // === EDITAR ===
-        const modalEditar = document.getElementById('modalEditarAlumno');
+        // === ALERTAS FLOTANTES ===
+        function showFloatingAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.textContent = message;
+            Object.assign(alert.style, {
+                position: 'fixed',
+                top: '15px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background:
+                    type === 'error' ? '#e74c3c' :
+                        type === 'success' ? '#2ecc71' :
+                            '#f1c40f',
+                color: '#fff',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                fontSize: '0.9rem',
+                zIndex: '9999',
+                opacity: '0',
+                transition: 'opacity 0.3s ease'
+            });
+            document.body.appendChild(alert);
+            setTimeout(() => alert.style.opacity = '1', 100);
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 400);
+            }, 3500);
+        }
+
+        // === VALIDACIONES ===
+        const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+        const phoneRegex = /^[0-9]{8}$/;
+
+        // === BLOQUEOS EN TIEMPO REAL ===
+        document.querySelectorAll('input[name="nombres"], #editNombre').forEach(input => {
+            input.addEventListener('input', e => {
+                e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+            });
+        });
+        document.querySelectorAll('input[name="telefono"], #editTelefono').forEach(input => {
+            input.addEventListener('input', e => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 8);
+            });
+        });
+
+        // === FECHA ===
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const maxDate = `${yyyy}-${mm}-${dd}`;
+        document.querySelectorAll('input[name="fecha_nacimiento"], #editFecha').forEach(input => {
+            input.max = maxDate;
+        });
+
+        function isValidAge(dateStr) {
+            const birthDate = new Date(dateStr);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            return age >= 16;
+        }
+
+        // === FORM NUEVO ALUMNO ===
+        const formNuevo = document.querySelector('#modalNuevoAlumno form');
+        formNuevo.setAttribute('novalidate', true);
+
+        formNuevo.addEventListener('submit', e => {
+            e.preventDefault();
+            const form = e.target;
+            const user = form.user_id.value;
+            const nombre = form.nombres.value.trim();
+            const telefono = form.telefono.value.trim();
+            const fecha = form.fecha_nacimiento.value;
+            const nivel = form.level.value;
+            const grado = form.grade.value;
+            const branch = form.branch_id.value;
+
+            if (!user) return showFloatingAlert('❌ Debes seleccionar un usuario asociado.');
+            if (!nombre) return showFloatingAlert('❌ El campo nombre es obligatorio.');
+            if (!telefono) return showFloatingAlert('❌ El teléfono es obligatorio.');
+            if (!fecha) return showFloatingAlert('❌ La fecha de nacimiento es obligatoria.');
+            if (!nivel) return showFloatingAlert('❌ Debes seleccionar un nivel.');
+            if (!grado) return showFloatingAlert('❌ Debes seleccionar un grado.');
+            if (!branch) return showFloatingAlert('❌ Debes seleccionar una sucursal.');
+
+            if (!nameRegex.test(nombre))
+                return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
+            if (!phoneRegex.test(telefono))
+                return showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
+            if (new Date(fecha) > today)
+                return showFloatingAlert('❌ La fecha de nacimiento no puede ser futura.');
+            if (!isValidAge(fecha))
+                return showFloatingAlert('❌ El alumno debe tener al menos 16 años.');
+
+            form.submit();
+        });
+
+        // === FORM EDITAR ALUMNO ===
         const formEditar = document.getElementById('formEditarAlumno');
+        formEditar.setAttribute('novalidate', true);
+
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = btn.dataset.id;
@@ -282,13 +429,55 @@
                 document.getElementById('editFecha').value = btn.dataset.fecha;
                 document.getElementById('editLevel').value = btn.dataset.level;
                 document.getElementById('editGrade').value = btn.dataset.grade;
-                document.getElementById('editBranch').value = btn.dataset.branch;
+
+                // === Cargar sucursal en el select personalizado ===
+                const branchId = btn.dataset.branch;
+                const selected = document.getElementById('selectedSucursalAlumnoEdit');
+                const hidden = document.getElementById('branchAlumnoHiddenEdit');
+                const options = document.querySelectorAll('#selectSucursalAlumnoEdit .option');
+                selected.textContent = 'Seleccione una sucursal...';
+                hidden.value = '';
+                options.forEach(opt => {
+                    if (opt.dataset.value === branchId) {
+                        selected.textContent = opt.querySelector('.opt-main').textContent.trim();
+                        hidden.value = branchId;
+                    }
+                });
+
                 modalEditar.classList.add('show');
             });
         });
 
+        formEditar.addEventListener('submit', e => {
+            e.preventDefault();
+            const form = e.target;
+            const nombre = form.nombres.value.trim();
+            const telefono = form.telefono.value.trim();
+            const fecha = form.fecha_nacimiento.value;
+            const nivel = form.level.value;
+            const grado = form.grade.value;
+            const branch = form.branch_id.value;
+
+            if (!nombre) return showFloatingAlert('❌ El campo nombre es obligatorio.');
+            if (!telefono) return showFloatingAlert('❌ El teléfono es obligatorio.');
+            if (!fecha) return showFloatingAlert('❌ La fecha de nacimiento es obligatoria.');
+            if (!nivel) return showFloatingAlert('❌ Debes seleccionar un nivel.');
+            if (!grado) return showFloatingAlert('❌ Debes seleccionar un grado.');
+            if (!branch) return showFloatingAlert('❌ Debes seleccionar una sucursal.');
+
+            if (!nameRegex.test(nombre))
+                return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
+            if (!phoneRegex.test(telefono))
+                return showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
+            if (new Date(fecha) > today)
+                return showFloatingAlert('❌ La fecha de nacimiento no puede ser futura.');
+            if (!isValidAge(fecha))
+                return showFloatingAlert('❌ El alumno debe tener al menos 16 años.');
+
+            form.submit();
+        });
+
         // === ELIMINAR ===
-        const modalEliminar = document.getElementById('modalEliminarAlumno');
         const formEliminar = document.getElementById('formEliminarAlumno');
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -298,7 +487,7 @@
             });
         });
 
-        // === FILTROS Y ORDEN ===
+        // === FILTROS ===
         const buscar = document.getElementById('buscarAlumno');
         const orden = document.getElementById('ordenAlumnos');
         const filtroNivel = document.getElementById('filtroNivel');
@@ -322,13 +511,11 @@
                 const nivelF = fila.children[4].textContent;
                 const gradoF = fila.children[5].textContent;
                 const sucursalF = fila.children[6].textContent;
-
                 const visible =
                     (!texto || nombre.includes(texto)) &&
                     (!nivel || nivelF === nivel) &&
                     (!grado || gradoF === grado) &&
                     (!sucursal || sucursalF === sucursal);
-
                 fila.style.display = visible ? '' : 'none';
             });
 
@@ -344,18 +531,88 @@
                 if (ordenSeleccionado === 'recientes') return idB - idA;
                 return 0;
             });
-
             const tbody = document.getElementById('tablaAlumnos');
             visibles.forEach(f => tbody.appendChild(f));
         }
 
         // === CERRAR MODALES ===
         window.addEventListener('keydown', e => {
-            if (e.key === 'Escape') [modalNuevo, modalEditar, modalEliminar].forEach(m => m.classList.remove('show'));
+            if (e.key === 'Escape')
+                [modalNuevo, modalEditar, modalEliminar].forEach(m => m.classList.remove('show'));
         });
-        function cerrarModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        function cerrarModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
         document.querySelectorAll('.modal-overlay').forEach(o =>
             o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); })
         );
+
+        // === MENSAJES DE ÉXITO DESDE LARAVEL ===
+        @if (session('success'))
+        showFloatingAlert("✅ {{ session('success') }}", 'success');
+        @endif
+        @if (session('updated'))
+        showFloatingAlert("✏️ {{ session('updated') }}", 'success');
+        @endif
+        @if (session('deleted'))
+        showFloatingAlert("🗑️ {{ session('deleted') }}", 'success');
+        @endif
+
+        // === SELECTS PERSONALIZADOS CON BUSCADOR ===
+        document.addEventListener("DOMContentLoaded", () => {
+            function setupCustomSelect(selectId, hiddenId, filterId) {
+                const select = document.getElementById(selectId);
+                if (!select) return;
+
+                const selected = select.querySelector('.selected-option');
+                const container = select.querySelector('.options-container');
+                const hidden = document.getElementById(hiddenId);
+                const filter = document.getElementById(filterId);
+
+                const normalize = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+                selected.addEventListener('click', () => {
+                    select.classList.toggle('open');
+                    filter.value = '';
+                    filterOptions('');
+                    if (select.classList.contains('open')) {
+                        setTimeout(() => filter.focus(), 150);
+                    }
+                });
+
+                container.querySelectorAll('.option').forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        selected.textContent = opt.querySelector('.opt-main').textContent.trim();
+                        hidden.value = opt.dataset.value;
+                        select.classList.remove('open');
+                    });
+                });
+
+                filter.addEventListener('input', e => {
+                    const term = normalize(e.target.value);
+                    filterOptions(term);
+                });
+
+                function filterOptions(term) {
+                    container.querySelectorAll('.option').forEach(opt => {
+                        const text = normalize(opt.textContent);
+                        opt.style.display = text.includes(term) ? 'block' : 'none';
+                    });
+                }
+
+                window.addEventListener('click', e => {
+                    if (!select.contains(e.target)) select.classList.remove('open');
+                });
+            }
+
+            setupCustomSelect('selectUsuarioAlumno', 'usuarioAlumnoHidden', 'filterUsuariosAlumno');
+            setupCustomSelect('selectSucursalAlumno', 'sucursalAlumnoHidden', 'filterSucursalesAlumno');
+            setupCustomSelect('selectSucursalAlumnoEdit', 'branchAlumnoHiddenEdit', 'filterSucursalesAlumnoEdit');
+        });
     </script>
+
+
+
 @endsection

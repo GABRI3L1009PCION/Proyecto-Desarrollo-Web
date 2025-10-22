@@ -138,35 +138,50 @@
             <form method="POST" action="{{ route('administrador.alumnos.store') }}" class="form-modal">
                 @csrf
 
-                <div class="campo-full">
+                <!-- === USUARIO ASOCIADO (custom-select) === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Usuario asociado (rol estudiante)</label>
-                    <select name="user_id" required>
-                        <option value="">Selecciona un usuario...</option>
-                        @foreach($usuariosNoRegistrados as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} — {{ $user->email }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectUsuarioCustom">
+                        <div class="selected-option">Selecciona un usuario...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterUsuarios" placeholder="🔍 Buscar por nombre o correo..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach($usuariosNoRegistrados as $user)
+                                    <div class="option" data-value="{{ $user->id }}">
+                                        <div class="opt-main">👤 {{ $user->name }}</div>
+                                        <div class="opt-sub">📧 {{ $user->email }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="user_id" id="userHidden" required>
                 </div>
 
+                <!-- === NOMBRE COMPLETO === -->
                 <div class="campo-full">
                     <label>Nombre completo</label>
                     <input type="text" name="nombres" required>
                 </div>
 
+                <!-- === TELÉFONO Y FECHA === -->
                 <div>
                     <label>Teléfono</label>
                     <input type="text"
                            name="telefono"
-                            inputmode="numeric"
-                            maxlength="8"
-                            pattern="[0-9]{8}"
-                            title="Debe contener exactamente 8 dígitos numéricos.">
+                           inputmode="numeric"
+                           maxlength="8"
+                           pattern="[0-9]{8}"
+                           title="Debe contener exactamente 8 dígitos numéricos.">
                 </div>
+
                 <div>
                     <label>Fecha de nacimiento</label>
                     <input type="date" name="fecha_nacimiento">
                 </div>
 
+                <!-- === NIVEL Y GRADO === -->
                 <div>
                     <label>Nivel</label>
                     <select name="level" required>
@@ -176,6 +191,7 @@
                         <option value="Avanzados II">Avanzados II</option>
                     </select>
                 </div>
+
                 <div>
                     <label>Grado</label>
                     <select name="grade" required>
@@ -184,15 +200,27 @@
                     </select>
                 </div>
 
-                <div class="campo-full">
+                <!-- === SUCURSAL (custom-select) === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Sucursal</label>
-                    <select name="branch_id" required>
-                        @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}">{{ $branch->nombre }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectSucursalCustom">
+                        <div class="selected-option">Selecciona una sucursal...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterSucursales" placeholder="🔍 Buscar sucursal..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach($branches as $branch)
+                                    <div class="option" data-value="{{ $branch->id }}">
+                                        <div class="opt-main">🏫 {{ $branch->nombre }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="branch_id" id="branchHidden" required>
                 </div>
 
+                <!-- === BOTONES === -->
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Guardar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalNuevoAlumno')">Cancelar</button>
@@ -200,6 +228,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- === MODAL EDITAR ALUMNO === -->
     <div id="modalEditarAlumno" class="modal-overlay">
@@ -209,27 +238,30 @@
                 @csrf
                 @method('PUT')
 
+                <!-- === NOMBRE === -->
                 <div class="campo-full">
                     <label>Nombre completo</label>
                     <input type="text" name="nombres" id="editNombre" required>
                 </div>
 
+                <!-- === TELÉFONO Y FECHA === -->
                 <div>
                     <label>Teléfono</label>
                     <input type="text"
                            name="telefono"
                            id="editTelefono"
-                            inputmode="numeric"
-                            maxlength="8"
-                            pattern="[0-9]{8}"
-                            title="Debe contener exactamente 8 dígitos numéricos.">
-
+                           inputmode="numeric"
+                           maxlength="8"
+                           pattern="[0-9]{8}"
+                           title="Debe contener exactamente 8 dígitos numéricos.">
                 </div>
+
                 <div>
                     <label>Fecha de nacimiento</label>
                     <input type="date" name="fecha_nacimiento" id="editFecha">
                 </div>
 
+                <!-- === NIVEL Y GRADO === -->
                 <div>
                     <label>Nivel</label>
                     <select name="level" id="editLevel" required>
@@ -239,6 +271,7 @@
                         <option value="Avanzados II">Avanzados II</option>
                     </select>
                 </div>
+
                 <div>
                     <label>Grado</label>
                     <select name="grade" id="editGrade" required>
@@ -247,15 +280,27 @@
                     </select>
                 </div>
 
-                <div class="campo-full">
+                <!-- === SUCURSAL (custom-select) === -->
+                <div class="custom-select-wrapper campo-full">
                     <label>Sucursal</label>
-                    <select name="branch_id" id="editBranch" required>
-                        @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}">{{ $branch->nombre }}</option>
-                        @endforeach
-                    </select>
+                    <div class="custom-select" id="selectSucursalEditCustom">
+                        <div class="selected-option">Selecciona una sucursal...</div>
+
+                        <div class="options-list">
+                            <input type="text" id="filterSucursalesEdit" placeholder="🔍 Buscar sucursal..." autocomplete="off">
+                            <div class="options-container">
+                                @foreach($branches as $branch)
+                                    <div class="option" data-value="{{ $branch->id }}">
+                                        <div class="opt-main">🏫 {{ $branch->nombre }}</div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="branch_id" id="branchHiddenEdit" required>
                 </div>
 
+                <!-- === BOTONES === -->
                 <div class="modal-actions">
                     <button type="submit" class="btn-confirm">Actualizar</button>
                     <button type="button" class="btn-cancel" onclick="cerrarModal('modalEditarAlumno')">Cancelar</button>
@@ -263,6 +308,7 @@
             </form>
         </div>
     </div>
+
 
     <!-- === MODAL ELIMINAR ALUMNO === -->
     <div id="modalEliminarAlumno" class="modal-overlay">
@@ -286,27 +332,30 @@
         const btnNuevo = document.getElementById('btnNuevoAlumno');
         btnNuevo.addEventListener('click', () => modalNuevo.classList.add('show'));
 
-        // === ALERTA FLOTANTE ===
+        // === ALERTAS FLOTANTES ===
         function showFloatingAlert(message, type = 'error') {
             const alert = document.createElement('div');
-            alert.className = `alert ${type}`;
             alert.textContent = message;
             Object.assign(alert.style, {
                 position: 'fixed',
                 top: '15px',
                 left: '50%',
                 transform: 'translateX(-50%)',
+                background:
+                    type === 'error' ? '#e74c3c' :
+                        type === 'warning' ? '#f1c40f' :
+                            '#2ecc71',
+                color: '#fff',
                 padding: '10px 20px',
                 borderRadius: '8px',
-                zIndex: '9999',
-                background: type === 'error' ? '#e74c3c' : '#2ecc71',
-                color: '#fff',
                 boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                fontSize: '0.9rem',
+                zIndex: '9999',
                 opacity: '0',
                 transition: 'opacity 0.3s ease'
             });
             document.body.appendChild(alert);
-            setTimeout(() => alert.style.opacity = '1', 50);
+            setTimeout(() => alert.style.opacity = '1', 100);
             setTimeout(() => {
                 alert.style.opacity = '0';
                 setTimeout(() => alert.remove(), 400);
@@ -317,24 +366,34 @@
         const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
         const phoneRegex = /^[0-9]{8}$/;
 
-        // === RESTRICCIÓN FECHA ===
+        // === BLOQUEO DE INPUTS EN TIEMPO REAL ===
+        document.addEventListener('input', e => {
+            const target = e.target;
+
+            // Solo letras y espacios para nombre
+            if (target.name === 'nombres' || target.id === 'editNombre') {
+                target.value = target.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+            }
+
+            // Solo números para teléfono
+            if (target.name === 'telefono' || target.id === 'editTelefono') {
+                target.value = target.value.replace(/[^0-9]/g, '');
+            }
+        });
+
+        // === RESTRICCIÓN DE FECHAS ===
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         const maxDate = `${yyyy}-${mm}-${dd}`;
-
-        document.querySelectorAll('input[name="fecha_nacimiento"], #editFecha').forEach(input => {
-            input.max = maxDate;
-        });
+        document.querySelectorAll('input[name="fecha_nacimiento"], #editFecha').forEach(i => i.max = maxDate);
 
         function isValidAge(dateStr) {
             const birthDate = new Date(dateStr);
             let age = today.getFullYear() - birthDate.getFullYear();
             const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
             return age >= 16;
         }
 
@@ -343,7 +402,7 @@
         formNuevo.setAttribute('novalidate', true);
 
         formNuevo.addEventListener('submit', e => {
-            e.preventDefault(); // ✅ evita que se envíe si hay errores
+            e.preventDefault();
             const form = e.target;
             const nombre = form.nombres.value.trim();
             const telefono = form.telefono.value.trim();
@@ -353,14 +412,13 @@
                 return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
             if (telefono && !phoneRegex.test(telefono))
                 return showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
-            if (fecha) {
-                if (new Date(fecha) > today)
-                    return showFloatingAlert('❌ La fecha de nacimiento no puede ser futura.');
-                if (!isValidAge(fecha))
-                    return showFloatingAlert('❌ El alumno debe tener al menos 16 años.');
-            }
+            if (!fecha)
+                return showFloatingAlert('❌ La fecha de nacimiento es obligatoria.');
+            if (new Date(fecha) > today)
+                return showFloatingAlert('❌ La fecha de nacimiento no puede ser futura.');
+            if (!isValidAge(fecha))
+                return showFloatingAlert('❌ El alumno debe tener al menos 16 años.');
 
-            // ✅ Si todo está correcto
             form.submit();
         });
 
@@ -378,13 +436,27 @@
                 document.getElementById('editFecha').value = btn.dataset.fecha;
                 document.getElementById('editLevel').value = btn.dataset.level;
                 document.getElementById('editGrade').value = btn.dataset.grade;
-                document.getElementById('editBranch').value = btn.dataset.branch;
+
+                // === Asignar sucursal en el custom-select ===
+                const selectSucursalEdit = document.getElementById('selectSucursalEditCustom');
+                const selectedText = selectSucursalEdit.querySelector('.selected-option');
+                const hiddenInput = document.getElementById('branchHiddenEdit');
+                const opciones = selectSucursalEdit.querySelectorAll('.option');
+                const idSucursal = btn.dataset.branch;
+
+                opciones.forEach(opt => {
+                    if (opt.dataset.value == idSucursal) {
+                        hiddenInput.value = idSucursal;
+                        selectedText.textContent = opt.querySelector('.opt-main')?.textContent.trim() || opt.textContent.trim();
+                    }
+                });
+
                 modalEditar.classList.add('show');
             });
         });
 
         formEditar.addEventListener('submit', e => {
-            e.preventDefault(); // ✅ evita guardar sin pasar validaciones
+            e.preventDefault();
             const form = e.target;
             const nombre = form.nombres.value.trim();
             const telefono = form.telefono.value.trim();
@@ -394,14 +466,13 @@
                 return showFloatingAlert('❌ El nombre solo puede contener letras y espacios.');
             if (telefono && !phoneRegex.test(telefono))
                 return showFloatingAlert('❌ El teléfono debe tener exactamente 8 dígitos numéricos.');
-            if (fecha) {
-                if (new Date(fecha) > today)
-                    return showFloatingAlert('❌ La fecha de nacimiento no puede ser futura.');
-                if (!isValidAge(fecha))
-                    return showFloatingAlert('❌ El alumno debe tener al menos 16 años.');
-            }
+            if (!fecha)
+                return showFloatingAlert('❌ La fecha de nacimiento es obligatoria.');
+            if (new Date(fecha) > today)
+                return showFloatingAlert('❌ La fecha de nacimiento no puede ser futura.');
+            if (!isValidAge(fecha))
+                return showFloatingAlert('❌ El alumno debe tener al menos 16 años.');
 
-            // ✅ Si todo está correcto
             form.submit();
         });
 
@@ -416,7 +487,7 @@
             });
         });
 
-        // === BUSCAR Y FILTROS ===
+        // === FILTROS ===
         const buscar = document.getElementById('buscarAlumno');
         const orden = document.getElementById('ordenAlumnos');
         const filtroNivel = document.getElementById('filtroNivel');
@@ -475,5 +546,65 @@
         document.querySelectorAll('.modal-overlay').forEach(o =>
             o.addEventListener('click', e => { if (e.target === o) cerrarModal(o.id); })
         );
+
+        // === CUSTOM SELECT GENERAL ===
+        function createCustomSelect(selectId, hiddenId, filterId) {
+            const select = document.getElementById(selectId);
+            const selected = select.querySelector('.selected-option');
+            const optionsContainer = select.querySelector('.options-container');
+            const hiddenInput = document.getElementById(hiddenId);
+            const filterInput = document.getElementById(filterId);
+
+            function normalizeText(str) {
+                return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            }
+
+            selected.addEventListener('click', () => {
+                select.classList.toggle('open');
+                filterInput.value = '';
+                filterOptions('');
+                if (select.classList.contains('open')) setTimeout(() => filterInput.focus(), 150);
+            });
+
+            optionsContainer.querySelectorAll('.option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    selected.textContent = opt.querySelector('.opt-main')?.textContent || opt.textContent.trim();
+                    hiddenInput.value = opt.dataset.value;
+                    select.classList.remove('open');
+                });
+            });
+
+            function filterOptions(searchTerm) {
+                const term = normalizeText(searchTerm);
+                optionsContainer.querySelectorAll('.option').forEach(opt => {
+                    const text = normalizeText(opt.textContent);
+                    opt.style.display = text.includes(term) ? 'block' : 'none';
+                });
+            }
+
+            filterInput.addEventListener('input', e => filterOptions(e.target.value));
+
+            window.addEventListener('click', e => {
+                if (!select.contains(e.target)) select.classList.remove('open');
+            });
+        }
+
+        // === INICIALIZAR LOS CUSTOM SELECTS ===
+        createCustomSelect('selectUsuarioCustom', 'userHidden', 'filterUsuarios');
+        createCustomSelect('selectSucursalCustom', 'branchHidden', 'filterSucursales');
+        createCustomSelect('selectSucursalEditCustom', 'branchHiddenEdit', 'filterSucursalesEdit');
+
+        // === MENSAJES DE ÉXITO DESDE LARAVEL ===
+        @if (session('success'))
+        showFloatingAlert("✅ {{ session('success') }}", 'success');
+        @endif
+        @if (session('updated'))
+        showFloatingAlert("✏️ {{ session('updated') }}", 'success');
+        @endif
+        @if (session('deleted'))
+        showFloatingAlert("🗑️ {{ session('deleted') }}", 'success');
+        @endif
     </script>
+
+
 @endsection

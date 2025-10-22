@@ -211,3 +211,139 @@
         width: 100%;
     }
 }
+/* === SELECT PERSONALIZADO CON SCROLL === */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* === Opción seleccionada === */
+.custom-select .selected-option {
+    padding: .6rem .9rem;
+    font-size: .9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+/* === Lista desplegable (ajustada para no salirse del modal) === */
+.custom-select .options-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(8, 26, 59, 0.97);
+    border-radius: 10px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    margin-top: 6px;
+    display: none;
+    z-index: 9999;
+    animation: fadeDown .25s ease;
+    padding-bottom: 6px;
+    overflow: hidden;
+}
+
+/* === Animación de aparición === */
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mostrar lista al abrir */
+.custom-select.open .options-list {
+    display: block;
+}
+
+/* === Buscador y contenedor de opciones === */
+.custom-select .options-list input[type="text"] {
+    width: calc(100% - 1rem);
+    margin: .5rem;
+    padding: .4rem .6rem;
+    font-size: .85rem;
+    border: none;
+    outline: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+/* === Contenedor scroll interno === */
+.custom-select .options-container {
+    max-height: 160px; /* 🔹 Límite visual dentro del modal */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    box-sizing: border-box;
+}
+
+/* === Cada opción === */
+.custom-select .option {
+    padding: .65rem .9rem;
+    font-size: .9rem;
+    color: #fff;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.custom-select .option:last-child {
+    border-bottom: none;
+}
+.custom-select .option:hover {
+    background: rgba(47,93,255,0.35);
+}
+
+/* === Adaptabilidad de texto === */
+.option,
+.opt-sub,
+.opt-main {
+    width: 100%;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+/* === Scrollbar elegante === */
+.custom-select .options-container::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-select .options-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+.custom-select .options-container::-webkit-scrollbar-thumb {
+    background: rgba(47, 93, 255, 0.4);
+    border-radius: 4px;
+}
+.custom-select .options-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(47, 93, 255, 0.6);
+}
+
+/* === Flechita decorativa === */
+.custom-select .selected-option::after {
+    content: "▼";
+    font-size: 0.7rem;
+    color: var(--primary-light);
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    transition: transform 0.25s ease, color 0.25s ease;
+    opacity: 0.9;
+}
+
+/* === Flechita al abrir === */
+.custom-select.open .selected-option::after {
+    transform: translateY(-50%) rotate(180deg);
+    color: #6ea8ff;
+}

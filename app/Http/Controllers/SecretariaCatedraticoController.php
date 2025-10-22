@@ -31,7 +31,7 @@ class SecretariaCatedraticoController extends Controller
 
         $teachers = $query->orderByDesc('id')->get();
 
-        return view('secretaria.catedraticos', compact('teachers'));
+        return view('Secretaria.catedraticos', compact('teachers'));
     }
 
     /**

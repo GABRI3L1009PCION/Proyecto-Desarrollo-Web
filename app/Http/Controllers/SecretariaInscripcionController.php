@@ -68,7 +68,7 @@ class SecretariaInscripcionController extends Controller
         $branches = Branch::orderBy('nombre')->get();
         $inscripcionesData = Enrollment::select('student_id', 'offering_id')->get();
 
-        return view('secretaria.sec_inscripciones', compact('inscripciones', 'students', 'offerings', 'branches', 'inscripcionesData'));
+        return view('Secretaria.sec_inscripciones', compact('inscripciones', 'students', 'offerings', 'branches', 'inscripcionesData'));
     }
 
     /**

@@ -192,7 +192,7 @@ Route::middleware(['auth', 'role:secretaria'])->prefix('secretaria')->group(func
     // 📚 Ver cursos asignados (solo lectura)
     Route::get('/catedraticos/{id}/cursos', [App\Http\Controllers\SecretariaCatedraticoController::class, 'cursos'])
         ->name('secretaria.catedraticos.cursos');
-    
+
 });
 
 // 🚪 Cierre de sesión

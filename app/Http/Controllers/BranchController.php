@@ -12,8 +12,9 @@ class BranchController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Inicializar la consulta con métricas
-        $query = Branch::withMetrics();
+        // 1. Inicializar la consulta y solicitar los conteos de estudiantes y CATEDRÁTICOS
+        // Se añade withCount(['teachers']) a la consulta inicial
+        $query = Branch::withMetrics()->withCount(['teachers']);
 
         // 2. Aplicar filtro de búsqueda (q)
         if ($q = $request->input('q')) {
@@ -55,7 +56,7 @@ class BranchController extends Controller
         $data = $r->validate([
             'nombre'    => 'required|string|max:100|unique:branches,nombre',
             'direccion' => 'nullable|string|max:255',
-            'telefono'  => 'required|string|max:30', // Hacemos teléfono obligatorio aquí también
+            'telefono'  => 'required|string|max:30',
         ]);
 
         $branch = Branch::create($data);
@@ -78,7 +79,7 @@ class BranchController extends Controller
         $data = $r->validate([
             'nombre'    => 'sometimes|required|string|max:100|unique:branches,nombre,' . $branch->id,
             'direccion' => 'nullable|string|max:255',
-            'telefono'  => 'sometimes|required|string|max:30', // Hacemos teléfono obligatorio aquí también
+            'telefono'  => 'sometimes|required|string|max:30',
         ]);
 
         $branch->update($data);
@@ -93,11 +94,9 @@ class BranchController extends Controller
     public function destroy(Branch $branch)
     {
         try {
-            // La validación de dependencias ocurre en el modelo o en el request.
             $branch->delete();
             return response()->json(['message' => '🗑️ Sucursal eliminada exitosamente.'], Response::HTTP_OK);
         } catch (\Throwable $e) {
-            // Este catch maneja errores de dependencias de la base de datos
             return response()->json([
                 'message' => '❌ No se puede eliminar la sucursal (Verifique que no tenga dependencias).',
                 'error'   => $e->getMessage()

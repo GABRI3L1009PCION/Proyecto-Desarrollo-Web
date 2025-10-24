@@ -3,16 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
+use App\Models\User; // Asegúrate de importar el modelo User
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class TeacherController extends Controller
 {
     /** ======================================================
-     *  📋 Listar catedráticos con sus relaciones
+     * 📋 Listar catedráticos con sus relaciones
      * ====================================================== */
     public function index()
     {
+        // NOTA: Para que los filtros del frontend funcionen eficientemente (búsqueda por nombre/sucursal),
+        // este método debe ser actualizado para aceptar los parámetros $request->input('q') y $request->input('branch_id'),
+        // de lo contrario, el filtrado se hará en el frontend (lo cual es menos eficiente).
+
         $teachers = Teacher::with(['user', 'branch', 'offerings.course'])
             ->orderBy('nombres')
             ->paginate(15);
@@ -31,7 +36,24 @@ class TeacherController extends Controller
     }
 
     /** ======================================================
-     *  ➕ Registrar un nuevo catedrático
+     * 🔍 Usuarios con rol "catedrático" sin vincular a Teacher
+     * * Esta función es necesaria para poblar el dropdown/selector de "Usuario Asociado"
+     * en el formulario de creación de catedráticos.
+     * ====================================================== */
+    public function unlinkedUsers()
+    {
+        // Asegura que solo trae usuarios con el rol 'catedratico' que NO tienen un registro en la tabla 'teachers'
+        $users = User::where('role', 'catedratico')
+            ->whereDoesntHave('teacher')
+            ->select('id', 'name', 'email')
+            ->orderBy('email')
+            ->get();
+
+        return response()->json($users, Response::HTTP_OK);
+    }
+
+    /** ======================================================
+     * ➕ Registrar un nuevo catedrático
      * ====================================================== */
     public function store(Request $request)
     {
@@ -52,7 +74,7 @@ class TeacherController extends Controller
     }
 
     /** ======================================================
-     *  👀 Ver detalles de un catedrático
+     * 👀 Ver detalles de un catedrático
      * ====================================================== */
     public function show(Teacher $teacher)
     {
@@ -64,7 +86,7 @@ class TeacherController extends Controller
     }
 
     /** ======================================================
-     *  ✏️ Actualizar datos de un catedrático
+     * ✏️ Actualizar datos de un catedrático
      * ====================================================== */
     public function update(Request $request, Teacher $teacher)
     {
@@ -84,7 +106,7 @@ class TeacherController extends Controller
     }
 
     /** ======================================================
-     *  ❌ Eliminar catedrático (con verificación de dependencias)
+     * ❌ Eliminar catedrático (con verificación de dependencias)
      * ====================================================== */
     public function destroy(Teacher $teacher)
     {

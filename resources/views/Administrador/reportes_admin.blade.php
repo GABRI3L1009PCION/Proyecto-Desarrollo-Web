@@ -42,30 +42,38 @@
                 <div class="header-actions">
                     <h3><i class="fa-solid fa-database"></i> Generar Reporte</h3>
                     <div class="actions-right">
+                        <!-- 📊 Tipo de reporte -->
                         <select id="tipoReporte">
                             <option value="inscritos">Alumnos inscritos</option>
-                            <option value="grado_nivel">Por grado y nivel</option>
-                            <option value="notas">Notas por curso</option>
+                            <option value="grado">Por grado</option>
+                            <option value="nivel">Por nivel</option>
+                            <option value="notas">Notas por curso y grado</option>
+                            <option value="sucursal">Listado de alumnos por sucursal</option>
+                            <option value="estadisticas">Estadísticas por grado</option>
                         </select>
+
+                        <!-- 🎯 Filtros específicos -->
+                        <select id="filtroCurso" style="display:none;"></select>
+                        <select id="filtroGrado" style="display:none;"></select>
+                        <select id="filtroSucursal" style="display:none;"></select>
+
+                        <!-- 🗓️ Fechas -->
                         <input type="date" id="fechaInicio">
                         <input type="date" id="fechaFin">
-                        <button class="btn-new" id="btnGenerar">
-                            <i class="fa-solid fa-play"></i> Generar
-                        </button>
-                        <button class="btn-excel" id="btnExportar">
-                            <i class="fa-solid fa-file-excel"></i> Exportar
-                        </button>
+
+                        <button class="btn-new" id="btnGenerar"><i class="fa-solid fa-play"></i> Generar</button>
+                        <button class="btn-excel" id="btnExportar"><i class="fa-solid fa-file-excel"></i> Exportar</button>
                     </div>
                 </div>
 
-                <!-- Contenedor de tabla dinámica -->
+                <!-- 📋 Tabla dinámica -->
                 <div class="table-wrapper">
                     <table class="data-table" id="tablaReportes">
                         <thead></thead>
                         <tbody>
                         <tr>
                             <td colspan="8" style="text-align:center;color:var(--muted);">
-                                Selecciona un tipo de reporte y rango de fechas para comenzar.
+                                Selecciona un tipo de reporte y filtros para comenzar.
                             </td>
                         </tr>
                         </tbody>
@@ -104,114 +112,156 @@
         const btnGenerar = document.getElementById('btnGenerar');
         const btnExportar = document.getElementById('btnExportar');
         const tabla = document.getElementById('tablaReportes');
+        const filtroCurso = document.getElementById('filtroCurso');
+        const filtroGrado = document.getElementById('filtroGrado');
+        const filtroSucursal = document.getElementById('filtroSucursal');
 
-        // === BLOQUEAR / DESBLOQUEAR FECHAS SEGÚN TIPO DE REPORTE ===
-        tipo.addEventListener('change', () => {
-            if (tipo.value === 'grado_nivel') {
-                inicio.disabled = true;
-                fin.disabled = true;
-                inicio.value = '';
-                fin.value = '';
-                inicio.style.opacity = '0.5';
-                fin.style.opacity = '0.5';
-            } else {
-                inicio.disabled = false;
-                fin.disabled = false;
-                inicio.style.opacity = '1';
-                fin.style.opacity = '1';
+        // === Mostrar / ocultar filtros según el tipo ===
+        tipo.addEventListener('change', async () => {
+            filtroCurso.style.display = 'none';
+            filtroGrado.style.display = 'none';
+            filtroSucursal.style.display = 'none';
+            inicio.disabled = fin.disabled = false;
+            inicio.style.opacity = fin.style.opacity = '1';
+
+            if (tipo.value === 'notas') {
+                filtroCurso.style.display = 'inline-block';
+                filtroGrado.style.display = 'inline-block';
+                await cargarCursosYGrados();
+            } else if (tipo.value === 'sucursal') {
+                filtroSucursal.style.display = 'inline-block';
+                await cargarSucursales();
+                inicio.disabled = fin.disabled = true;
+                inicio.style.opacity = fin.style.opacity = '0.5';
+            } else if (['grado', 'nivel', 'estadisticas'].includes(tipo.value)) {
+                inicio.disabled = fin.disabled = true;
+                inicio.style.opacity = fin.style.opacity = '0.5';
             }
         });
 
-        // === GENERAR REPORTE (AJAX) ===
+        // === Cargar cursos y grados reales ===
+        async function cargarCursosYGrados() {
+            try {
+                const res = await fetch("/administrador/data/cursos");
+                const cursos = await res.json();
+                filtroCurso.innerHTML = '<option value="">Todos los cursos</option>' +
+                    cursos.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+            } catch {
+                filtroCurso.innerHTML = '<option value="">Error al cargar cursos</option>';
+            }
+
+            const grados = ['Novatos', 'Expertos'];
+            filtroGrado.innerHTML = '<option value="">Todos los grados</option>' +
+                grados.map(g => `<option value="${g}">${g}</option>`).join('');
+        }
+
+        // === Cargar sucursales ===
+        async function cargarSucursales() {
+            try {
+                const res = await fetch("/administrador/data/sucursales");
+                const sucursales = await res.json();
+                filtroSucursal.innerHTML = '<option value="">Todas las sucursales</option>' +
+                    sucursales.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+            } catch {
+                filtroSucursal.innerHTML = '<option value="">Error al cargar sucursales</option>';
+            }
+        }
+
+        // === Generar reporte (AJAX) ===
         btnGenerar.addEventListener('click', async () => {
             const t = tipo.value;
             const fi = inicio.value;
             const ff = fin.value;
+            const cursoId = filtroCurso.value;
+            const grado = filtroGrado.value;
+            const sucursal = filtroSucursal.value;
 
-            tabla.querySelector('tbody').innerHTML = `
-                <tr><td colspan="8" style="text-align:center;color:var(--muted);">Cargando datos...</td></tr>
-            `;
+            tabla.querySelector('tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);">Cargando datos...</td></tr>`;
 
             let url = '';
             if (t === 'inscritos') url = "{{ route('administrador.reportes.inscritos') }}";
-            else if (t === 'grado_nivel') url = "{{ route('administrador.reportes.gradoNivel') }}";
+            else if (t === 'grado') url = "{{ route('administrador.reportes.grado') }}";
+            else if (t === 'nivel') url = "{{ route('administrador.reportes.nivel') }}";
             else if (t === 'notas') url = "{{ route('administrador.reportes.notas') }}";
-
+            else if (t === 'sucursal') url = "{{ route('administrador.reportes.alumnosSucursal') }}";
+            else if (t === 'estadisticas') url = "{{ route('administrador.reportes.estadisticas') }}";
             try {
-                const params = new URLSearchParams({ fechaInicio: fi, fechaFin: ff });
+                const params = new URLSearchParams({ fechaInicio: fi, fechaFin: ff, cursoId, grado, branch_id: sucursal });
                 const res = await fetch(`${url}?${params.toString()}`);
                 const data = await res.json();
                 renderTable(t, data);
-            } catch (e) {
-                tabla.querySelector('tbody').innerHTML = `
-                    <tr><td colspan="8" style="text-align:center;color:#e74c3c;">Error al cargar los datos</td></tr>
-                `;
+            } catch {
+                tabla.querySelector('tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:#e74c3c;">Error al cargar los datos</td></tr>`;
             }
         });
 
-        // === EXPORTAR A EXCEL ===
+        // === Exportar a Excel ===
+        // === Exportar a Excel (enviando TODOS los filtros) ===
         btnExportar.addEventListener('click', () => {
             const t = tipo.value;
             const fi = inicio.value;
             const ff = fin.value;
+            const cursoId = filtroCurso.value;
+            const grado = filtroGrado.value;
+            const sucursal = filtroSucursal.value;
 
             let url = '';
-            if (t === 'inscritos') url = "{{ route('administrador.reportes.export.inscritos') }}";
-            else if (t === 'grado_nivel') url = "{{ route('administrador.reportes.export.gradoNivel') }}";
-            else if (t === 'notas') url = "{{ route('administrador.reportes.export.notas') }}";
 
-            const params = new URLSearchParams({ fechaInicio: fi, fechaFin: ff });
+            if (t === 'inscritos') url = "{{ route('administrador.reportes.export.inscritos') }}";
+            else if (t === 'grado' || t === 'nivel') url = "{{ route('administrador.reportes.export.gradoNivel') }}";
+            else if (t === 'notas') url = "{{ route('administrador.reportes.export.notas') }}";
+            else if (t === 'sucursal') url = "{{ route('administrador.reportes.export.sucursal') }}";
+            else if (t === 'estadisticas') url = "{{ route('administrador.reportes.export.estadisticas') }}";
+
+            // ✅ Ahora se incluyen TODOS los filtros
+            const params = new URLSearchParams({
+                fechaInicio: fi,
+                fechaFin: ff,
+                cursoId,
+                grado,
+                branch_id: sucursal
+            });
+
             window.location.href = `${url}?${params.toString()}`;
         });
 
-        // === FUNCIÓN PARA RENDERIZAR TABLA ===
+
+        // === Renderizar tabla ===
         function renderTable(tipo, data) {
             let head = '', body = '';
 
             if (tipo === 'inscritos') {
                 head = `<tr><th>#</th><th>Alumno</th><th>Curso</th><th>Sucursal</th><th>Fecha</th><th>Estado</th></tr>`;
-                data.forEach((i, idx) => {
-                    body += `<tr>
-                        <td>${idx + 1}</td>
-                        <td>${i.alumno}</td>
-                        <td>${i.curso}</td>
-                        <td>${i.sucursal}</td>
-                        <td>${i.fecha}</td>
-                        <td>${i.estado}</td>
-                    </tr>`;
-                });
+                data.forEach((i, idx) => body += `<tr><td>${idx+1}</td><td>${i.alumno}</td><td>${i.curso}</td><td>${i.sucursal}</td><td>${i.fecha}</td><td>${i.estado}</td></tr>`);
             }
 
-            if (tipo === 'grado_nivel') {
-                head = `<tr><th>Grado</th><th>Nivel</th><th>Total de alumnos</th></tr>`;
-                data.forEach(i => {
-                    body += `<tr>
-                        <td>${i.grade}</td>
-                        <td>${i.level}</td>
-                        <td>${i.total}</td>
-                    </tr>`;
-                });
+            if (tipo === 'grado') {
+                head = `<tr><th>Grado</th><th>Total de alumnos</th></tr>`;
+                data.forEach(i => body += `<tr><td>${i.grade}</td><td>${i.total}</td></tr>`);
+            }
+
+            if (tipo === 'nivel') {
+                head = `<tr><th>Nivel</th><th>Total de alumnos</th></tr>`;
+                data.forEach(i => body += `<tr><td>${i.level}</td><td>${i.total}</td></tr>`);
             }
 
             if (tipo === 'notas') {
-                head = `<tr><th>#</th><th>Curso</th><th>Alumno</th><th>P1</th><th>P2</th><th>Final</th><th>Total</th><th>Estado</th></tr>`;
-                data.forEach((i, idx) => {
-                    body += `<tr>
-                        <td>${idx + 1}</td>
-                        <td>${i.curso}</td>
-                        <td>${i.alumno}</td>
-                        <td>${i.parcial1 ?? '-'}</td>
-                        <td>${i.parcial2 ?? '-'}</td>
-                        <td>${i.final ?? '-'}</td>
-                        <td>${i.total ?? '-'}</td>
-                        <td>${i.estado ?? '-'}</td>
-                    </tr>`;
-                });
+                head = `<tr><th>#</th><th>Curso</th><th>Grado</th><th>Nivel</th><th>Alumno</th><th>P1</th><th>P2</th><th>Final</th><th>Total</th><th>Estado</th><th>Fecha</th></tr>`;
+                data.forEach((i, idx) => body += `<tr><td>${idx+1}</td><td>${i.curso}</td><td>${i.grado}</td><td>${i.nivel}</td><td>${i.alumno}</td><td>${i.parcial1}</td><td>${i.parcial2}</td><td>${i.final}</td><td>${i.total}</td><td>${i.estado}</td><td>${i.fecha ?? '-'}</td></tr>`);
             }
 
-            if (data.length === 0) {
-                body = `<tr><td colspan="8" style="text-align:center;color:var(--muted);">Sin resultados</td></tr>`;
+            if (tipo === 'sucursal') {
+                head = `<tr><th>#</th><th>Alumno</th><th>Grado</th><th>Nivel</th><th>Sucursal</th></tr>`;
+                data.forEach((i, idx) => body += `<tr><td>${idx+1}</td><td>${i.alumno}</td><td>${i.grado}</td><td>${i.nivel}</td><td>${i.sucursal}</td></tr>`);
             }
+
+            if (tipo === 'estadisticas') {
+                head = `<tr><th>Grado</th><th>Promedio General</th></tr>`;
+                data.forEach(i => body += `<tr><td>${i.grade}</td><td>${parseFloat(i.promedio).toFixed(2)}</td></tr>`);
+            }
+
+            if (!data || data.length === 0)
+                body = `<tr><td colspan="8" style="text-align:center;color:var(--muted);">Sin resultados</td></tr>`;
 
             tabla.querySelector('thead').innerHTML = head;
             tabla.querySelector('tbody').innerHTML = body;

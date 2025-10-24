@@ -5,8 +5,9 @@ namespace App\Exports;
 use App\Models\Enrollment;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class InscritosExport implements FromCollection, WithHeadings
+class InscritosExport implements FromCollection, WithHeadings, ShouldAutoSize
 {
     protected $inicio;
     protected $fin;
@@ -19,23 +20,23 @@ class InscritosExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        return Enrollment::with(['student.branch', 'offering.course'])
+        $inscritos = Enrollment::with(['student.branch', 'offering.course'])
             ->when($this->inicio, fn($q) => $q->whereDate('fecha', '>=', $this->inicio))
             ->when($this->fin, fn($q) => $q->whereDate('fecha', '<=', $this->fin))
-            ->get()
-            ->map(function ($e) {
-                return [
-                    'Alumno'   => $e->student->nombres ?? '',
-                    'Curso'    => $e->offering->course->nombre ?? '',
-                    'Sucursal' => $e->student->branch->nombre ?? '',
-                    'Fecha' => date('d/m/Y', strtotime($e->fecha)),
-                    'Estado'   => $e->status,
-                ];
-            });
+            ->orderBy('fecha', 'desc')
+            ->get();
+
+        return $inscritos->map(fn($e) => [
+            'Alumno'   => $e->student->nombres ?? 'Desconocido',
+            'Curso'    => $e->offering->course->nombre ?? 'Sin curso',
+            'Sucursal' => $e->student->branch->nombre ?? 'Sin asignar',
+            'Fecha'    => optional($e->fecha)->format('d/m/Y'),
+            'Estado'   => ucfirst($e->status),
+        ]);
     }
 
     public function headings(): array
     {
-        return ['Alumno', 'Curso', 'Sucursal', 'Fecha', 'Estado'];
+        return ['Alumno', 'Curso', 'Sucursal', 'Fecha de Inscripción', 'Estado'];
     }
 }

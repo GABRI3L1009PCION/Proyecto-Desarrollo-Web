@@ -10,12 +10,49 @@ use Illuminate\Http\Response;
 class EnrollmentController extends Controller
 {
     // GET /enrollments
-    public function index()
+    // AÑADIDO: Lógica para manejar 'limit' y 'sort'
+    public function index(Request $request)
     {
-        return response()->json(
-            Enrollment::with(['student.user', 'offering.course', 'offering.teacher.user', 'offering.branch'])
-                ->paginate(10)
-        );
+        $query = Enrollment::with([
+            'student.user',
+            'offering.course',
+            'offering.teacher.user',
+            'offering.branch'
+        ]);
+
+        // 1. ORDENAMIENTO (Por defecto: más recientes)
+        switch ($request->input('sort', 'latest')) {
+            case 'oldest':
+                $query->orderBy('fecha', 'asc');
+                break;
+            case 'latest':
+            default:
+                $query->orderBy('fecha', 'desc');
+                break;
+        }
+
+        // 2. LÍMITE (Usado por el dashboard de Secretaría)
+        if ($limit = $request->input('limit')) {
+            $enrollments = $query->take($limit)->get();
+            $totalCount = Enrollment::count(); // Obtener el conteo total para el dashboard
+
+            return response()->json([
+                'success' => true,
+                'total' => $totalCount, // Conteo total para el StatCard
+                'data' => $enrollments,
+            ], Response::HTTP_OK);
+        }
+
+        // 3. PAGINACIÓN ESTÁNDAR (Si no hay límite)
+        $paginatedEnrollments = $query->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'total' => $paginatedEnrollments->total(), // Total para el StatCard
+            'data' => $paginatedEnrollments->items(),
+            'current_page' => $paginatedEnrollments->currentPage(),
+            'last_page' => $paginatedEnrollments->lastPage(),
+        ], Response::HTTP_OK);
     }
 
     // POST /enrollments

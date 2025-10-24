@@ -35,6 +35,7 @@ Route::view('/register', 'auth.register')->name('register.view');
 // =========================
 
 // ===== ADMINISTRADOR =====
+// ===== ADMINISTRADOR =====
 Route::middleware(['auth', 'role:admin'])->prefix('administrador')->group(function () {
 
     // 🏠 PANEL PRINCIPAL
@@ -63,22 +64,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('administrador')->group(functi
     Route::post('/catedraticos', [AdminTeacherController::class, 'store'])->name('administrador.catedraticos.store');
     Route::put('/catedraticos/{id}', [AdminTeacherController::class, 'update'])->name('administrador.catedraticos.update');
     Route::delete('/catedraticos/{id}', [AdminTeacherController::class, 'destroy'])->name('administrador.catedraticos.destroy');
-
-    // ⚙ ASIGNACIÓN DE CURSOS A CATEDRÁTICOS
-    Route::post('/catedraticos/{id}/asignar-curso', [AdminTeacherController::class, 'asignarCurso'])
-        ->name('administrador.catedraticos.asignar');
-
-    // 📚 VER CURSOS (para el modal, solo lectura)
-    Route::get('/catedraticos/{id}/cursos', [AdminTeacherController::class, 'getCursos'])
-        ->name('administrador.catedraticos.cursos');
-
-    // ✏ ACTUALIZAR ASIGNACIÓN DE CURSO (versión web)
-    Route::put('/asignacion/{id}', [AdminTeacherController::class, 'actualizarAsignacion'])
-        ->name('administrador.asignacion.update');
-
-    // 🗑 ELIMINAR ASIGNACIÓN DE CURSO (versión web)
-    Route::delete('/asignacion/{id}', [AdminTeacherController::class, 'eliminarAsignacion'])
-        ->name('administrador.asignacion.destroy');
+    Route::post('/catedraticos/{id}/asignar-curso', [AdminTeacherController::class, 'asignarCurso'])->name('administrador.catedraticos.asignar');
+    Route::get('/catedraticos/{id}/cursos', [AdminTeacherController::class, 'getCursos'])->name('administrador.catedraticos.cursos');
 
     // 📘 CURSOS
     Route::get('/cursos', [AdminCursosController::class, 'index'])->name('administrador.cursos');
@@ -86,25 +73,46 @@ Route::middleware(['auth', 'role:admin'])->prefix('administrador')->group(functi
     Route::put('/cursos/{id}', [AdminCursosController::class, 'update'])->name('administrador.cursos.update');
     Route::delete('/cursos/{id}', [AdminCursosController::class, 'destroy'])->name('administrador.cursos.destroy');
 
-// 📊 REPORTES — Panel del Administrador
+    // 📦 DATOS JSON (para combos en reportes)
+    Route::get('/data/cursos', fn() => \App\Models\Course::select('id', 'nombre')->get());
+    Route::get('/data/sucursales', fn() => \App\Models\Branch::select('id', 'nombre')->get());
+
+    // ======================================================
+    // 📊 REPORTES — PANEL DEL ADMINISTRADOR
+    // ======================================================
+
     Route::get('/reportes', [AdministradorReportesController::class, 'index'])
         ->name('administrador.reportes');
 
-// ✅ Endpoints AJAX de reportes (para el botón “Generar”)
+    // AJAX
     Route::get('/reportes/inscritos', [AdministradorReportesController::class, 'inscritos'])
         ->name('administrador.reportes.inscritos');
-
-    Route::get('/reportes/grado-nivel', [AdministradorReportesController::class, 'gradoNivel'])
-        ->name('administrador.reportes.gradoNivel');
-
+    Route::get('/reportes/grado', [AdministradorReportesController::class, 'grado'])
+        ->name('administrador.reportes.grado');
+    Route::get('/reportes/nivel', [AdministradorReportesController::class, 'nivel'])
+        ->name('administrador.reportes.nivel');
     Route::get('/reportes/notas', [AdministradorReportesController::class, 'notas'])
         ->name('administrador.reportes.notas');
+    Route::get('/reportes/alumnos-sucursal', [AdministradorReportesController::class, 'alumnosPorSucursal'])
+        ->name('administrador.reportes.alumnosSucursal');
+    Route::get('/reportes/estadisticas', [AdministradorReportesController::class, 'estadisticas'])
+        ->name('administrador.reportes.estadisticas');
 
-    // ✅ EXPORTAR A EXCEL
-    Route::get('/reportes/exportar/inscritos', [AdministradorReportesController::class, 'exportarInscritos'])->name('administrador.reportes.export.inscritos');
-    Route::get('/reportes/exportar/grado-nivel', [AdministradorReportesController::class, 'exportarGradoNivel'])->name('administrador.reportes.export.gradoNivel');
-    Route::get('/reportes/exportar/notas', [AdministradorReportesController::class, 'exportarNotas'])->name('administrador.reportes.export.notas');
+    // EXPORTAR
+    Route::get('/reportes/exportar/inscritos', [AdministradorReportesController::class, 'exportarInscritos'])
+        ->name('administrador.reportes.export.inscritos');
+    Route::get('/reportes/exportar/grado-nivel', [AdministradorReportesController::class, 'exportarGradoNivel'])
+        ->name('administrador.reportes.export.gradoNivel');
+    Route::get('/reportes/exportar/notas', [AdministradorReportesController::class, 'exportarNotas'])
+        ->name('administrador.reportes.export.notas');
+    Route::get('/reportes/exportar/sucursal', [AdministradorReportesController::class, 'exportarPorSucursal'])
+        ->name('administrador.reportes.export.sucursal');
+    // 🔹 Exportar estadísticas por grado
+    Route::get('/reportes/exportar/estadisticas', [AdministradorReportesController::class, 'exportarEstadisticas'])
+        ->name('administrador.reportes.export.estadisticas');
+
 });
+
 
 // ===== CATEDRÁTICO =====
 Route::middleware(['auth', 'role:catedratico'])

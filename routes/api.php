@@ -88,7 +88,7 @@ Route::prefix('v1')->group(function () {
             Route::get('enrollments', [SearchController::class, 'enrollments']);
 
             Route::get('students/unlinked-users', [StudentController::class, 'unlinkedUsers']);
-
+            Route::get('/teachers/unlinked-users', [TeacherController::class, 'unlinkedUsers']);
         });
     });
 });

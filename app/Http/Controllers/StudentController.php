@@ -3,19 +3,60 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class StudentController extends Controller
 {
     /** ======================================================
-     *  📋 Listar todos los estudiantes
+     *  📋 Listar todos los estudiantes (con búsqueda, filtro y orden)
      * ====================================================== */
-    public function index()
+    public function index(Request $request)
     {
-        $students = Student::with(['branch', 'user', 'enrollments.offering.course'])
-            ->orderByDesc('id')
-            ->paginate(15);
+        $query = Student::with(['branch', 'user', 'enrollments.offering.course']);
+
+        // 🔍 Búsqueda general (nombre, teléfono o correo)
+        if ($q = $request->input('q')) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('nombres', 'like', "%{$q}%")
+                    ->orWhere('telefono', 'like', "%{$q}%")
+                    ->orWhereHas('user', function ($u) use ($q) {
+                        $u->where('email', 'like', "%{$q}%");
+                    });
+            });
+        }
+
+        // 🏫 Filtro por sucursal
+        if ($branchId = $request->input('branch_id')) {
+            $query->where('branch_id', $branchId);
+        }
+
+        // 🎓 Filtro por grado (Novatos / Expertos)
+        if ($grade = $request->input('grade')) {
+            $query->where('grade', $grade);
+        }
+
+        // 📘 Filtro por nivel (Principiantes / Avanzados)
+        if ($level = $request->input('level')) {
+            $query->where('level', $level);
+        }
+
+        // 🔄 Ordenamiento
+        switch ($request->input('sort', 'recientes')) {
+            case 'antiguos':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'alfabetico':
+                $query->orderBy('nombres', 'asc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        // 📄 Paginación (15 por página)
+        $students = $query->paginate(15);
 
         return response()->json([
             'success' => true,
@@ -28,6 +69,20 @@ class StudentController extends Controller
                 'per_page'     => $students->perPage(),
             ]
         ], Response::HTTP_OK);
+    }
+
+    /** ======================================================
+     *  🔍 Usuarios con rol "estudiante" sin vincular a Student
+     * ====================================================== */
+    public function unlinkedUsers()
+    {
+        $users = User::where('role', 'estudiante')
+            ->whereDoesntHave('student')
+            ->select('id', 'name', 'email')
+            ->orderBy('email')
+            ->get();
+
+        return response()->json($users, Response::HTTP_OK);
     }
 
     /** ======================================================

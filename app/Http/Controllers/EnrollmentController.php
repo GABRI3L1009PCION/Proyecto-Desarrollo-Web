@@ -45,14 +45,24 @@ class EnrollmentController extends Controller
         // 🔑 4. BÚSQUEDA GENERAL (q) por Nombre de Alumno o Nombre de Curso
         if ($q = $request->input('q')) {
             $query->where(function ($sq) use ($q) {
-                // Busca en el nombre del usuario (alumno)
-                $sq->whereHas('student.user', fn($qu) =>
-                $qu->where('name', 'like', "%{$q}%")
+
+                // === INICIO DE LA CORRECCIÓN ===
+
+                // Opción 1 (Recomendada): Busca el nombre en la tabla 'students', columna 'nombres'
+                $sq->whereHas('student', fn($qs) =>
+                $qs->where('nombres', 'like', "%{$q}%")
                 )
+                    // Opción 2 (Adicional): También puedes buscar en el 'user.name' como fallback si lo necesitas
+                    // ->orWhereHas('student.user', fn($qu) =>
+                    //     $qu->where('name', 'like', "%{$q}%")
+                    // )
+
                     // OR Busca en el nombre del curso
                     ->orWhereHas('offering.course', fn($qc) =>
                     $qc->where('nombre', 'like', "%{$q}%")
                     );
+
+                // === FIN DE LA CORRECCIÓN ===
             });
         }
 
@@ -70,6 +80,7 @@ class EnrollmentController extends Controller
         // === 📏 LÍMITE (Dashboard rápido) ===
         if ($limit = $request->input('limit')) {
             $enrollments = $query->take($limit)->get();
+            // CORRECCIÓN: Si usas límite, el total de inscripciones es el total GLOBAL (Enrollment::count()).
             $totalCount = Enrollment::count();
 
             return response()->json([
@@ -77,8 +88,8 @@ class EnrollmentController extends Controller
                 'filters' => [
                     'estado'   => $request->estado,
                     'curso_id' => $request->curso_id,
-                    'branch_id' => $request->branch_id, // Añadido
-                    'q'        => $request->q,          // Añadido
+                    'branch_id' => $request->branch_id,
+                    'q'        => $request->q,
                     'sort'     => $request->sort,
                     'limit'    => $limit,
                 ],
@@ -98,8 +109,8 @@ class EnrollmentController extends Controller
             'filters' => [
                 'estado'   => $request->estado,
                 'curso_id' => $request->curso_id,
-                'branch_id' => $request->branch_id, // Añadido
-                'q'        => $request->q,          // Añadido
+                'branch_id' => $request->branch_id,
+                'q'        => $request->q,
                 'sort'     => $request->sort,
             ],
             'pagination' => [
@@ -111,6 +122,8 @@ class EnrollmentController extends Controller
             'data' => $paginated->items(),
         ], Response::HTTP_OK);
     }
+
+    // ... (Resto de los métodos store, show, update, destroy sin cambios)
 
     // ======================================================
     // ➕ POST /enrollments — Crear inscripción

@@ -147,37 +147,34 @@ class TeacherController extends Controller
      * ====================================================== */
     public function dashboard(Request $request)
     {
-        $teacherId = $request->user()->teacher_id ?? null;
+        // 🔍 Buscar el catedrático usando el user_id del usuario autenticado
+        $teacher = Teacher::where('user_id', $request->user()->id)
+            ->with([
+                'offerings.course:id,nombre',
+                'offerings.branch:id,nombre',
+                'offerings.enrollments:id,offering_id',
+            ])
+            ->first();
 
-        if (!$teacherId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'El usuario autenticado no tiene un catedrático asociado.',
-            ], Response::HTTP_NOT_FOUND);
-        }
-
-        $teacher = Teacher::with([
-            'offerings.course:id,nombre',
-            'offerings.branch:id,nombre',
-            'offerings.enrollments:id,offering_id',
-        ])->find($teacherId);
-
+        // ⚠️ Si no hay registro de catedrático vinculado, devolver error controlado
         if (!$teacher) {
             return response()->json([
                 'success' => false,
-                'message' => 'Catedrático no encontrado.',
+                'message' => '⚠️ El usuario autenticado no tiene un catedrático asociado.',
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // 📊 Cálculos de estadísticas generales
         $totalCursos = $teacher->offerings->count();
         $totalAlumnos = $teacher->offerings->sum(fn($o) => $o->enrollments->count());
 
-        $promedioGeneral = Grade::whereHas('enrollment.offering', function ($q) use ($teacherId) {
-            $q->where('teacher_id', $teacherId);
+        $promedioGeneral = Grade::whereHas('enrollment.offering', function ($q) use ($teacher) {
+            $q->where('teacher_id', $teacher->id);
         })->avg('total');
 
         $promedioGeneral = $promedioGeneral ? round($promedioGeneral, 2) : 0;
 
+        // 🧾 Listado resumido de cursos asignados
         $cursos = $teacher->offerings->map(fn($o) => [
             'id' => $o->id,
             'curso' => $o->course->nombre ?? '—',
@@ -187,6 +184,7 @@ class TeacherController extends Controller
             'alumnos_inscritos' => $o->enrollments->count(),
         ]);
 
+        // ✅ Respuesta final al frontend
         return response()->json([
             'success' => true,
             'message' => 'Panel del catedrático cargado correctamente.',
@@ -201,20 +199,25 @@ class TeacherController extends Controller
         ], Response::HTTP_OK);
     }
 
+
     /** ======================================================
      * 🎓 LISTA DE CURSOS FILTRADOS (para "Mis Cursos")
      * ====================================================== */
     public function courses(Request $request)
     {
-        $teacherId = $request->user()->teacher_id ?? null;
+        // 🔍 Buscar el registro del catedrático vinculado al usuario autenticado
+        $teacher = Teacher::where('user_id', $request->user()->id)->first();
 
-        if (!$teacherId) {
+        if (!$teacher) {
             return response()->json([
                 'success' => false,
-                'message' => 'El usuario autenticado no tiene un catedrático asociado.',
+                'message' => '⚠️ El usuario autenticado no tiene un catedrático asociado.',
             ], Response::HTTP_NOT_FOUND);
         }
 
+        $teacherId = $teacher->id;
+
+        // 📚 Construcción de la consulta base
         $query = \App\Models\Offering::with(['course', 'branch', 'enrollments'])
             ->where('teacher_id', $teacherId);
 
@@ -228,13 +231,13 @@ class TeacherController extends Controller
             });
         }
 
-        // 🎯 Filtros
+        // 🎯 Filtros específicos
         if ($grado = $request->input('grado')) $query->where('grade', $grado);
         if ($nivel = $request->input('nivel')) $query->where('level', $nivel);
         if ($ciclo = $request->input('ciclo')) $query->where('ciclo', $ciclo);
         if ($cupo = $request->input('cupo')) $query->where('cupo', $cupo);
 
-        // ⚙️ Ordenamiento
+        // ⚙️ Ordenamiento flexible
         switch ($request->input('orden', 'recientes')) {
             case 'antiguos':
                 $query->orderBy('created_at', 'asc');
@@ -263,6 +266,7 @@ class TeacherController extends Controller
 
         $courses = $query->paginate(10);
 
+        // ✅ Respuesta formateada al frontend
         return response()->json([
             'success' => true,
             'message' => 'Lista de cursos asignados cargada correctamente.',
@@ -286,20 +290,30 @@ class TeacherController extends Controller
         ], Response::HTTP_OK);
     }
 
+
     /** ======================================================
      * 🧾 LISTAR CALIFICACIONES DE UN CURSO
      * ====================================================== */
     public function courseGrades(Request $request, $offeringId)
     {
-        $teacherId = $request->user()->teacher_id ?? null;
+        // 🔍 Buscar el registro del catedrático vinculado al usuario autenticado
+        $teacher = Teacher::where('user_id', $request->user()->id)->first();
 
+        if (!$teacher) {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ El usuario autenticado no tiene un catedrático asociado.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // 📚 Buscar el curso asignado a este catedrático
         $offering = Offering::with([
             'course',
             'enrollments.student.user',
             'enrollments.grade'
         ])
             ->where('id', $offeringId)
-            ->where('teacher_id', $teacherId)
+            ->where('teacher_id', $teacher->id)
             ->first();
 
         if (!$offering) {
@@ -309,7 +323,7 @@ class TeacherController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
-        // Datos de notas
+        // 🧾 Datos de notas
         $grades = $offering->enrollments->map(fn($e) => [
             'id' => $e->id,
             'alumno' => $e->student->nombres ?? 'Desconocido',
@@ -320,7 +334,7 @@ class TeacherController extends Controller
             'estado' => $e->grade->estado ?? '—',
         ]);
 
-        // Promedios y conteos
+        // 📊 Promedios y conteos
         $promedio = round($grades->avg('total') ?? 0, 2);
         $aprobados = $grades->where('estado', 'Aprobado')->count();
         $recuperacion = $grades->where('estado', 'Recuperación')->count();
@@ -344,10 +358,19 @@ class TeacherController extends Controller
      * ====================================================== */
     public function gradeStudent(Request $request, $enrollmentId)
     {
-        $teacherId = $request->user()->teacher_id ?? null;
+        // 🔍 Buscar el registro del catedrático vinculado al usuario autenticado
+        $teacher = Teacher::where('user_id', $request->user()->id)->first();
 
+        if (!$teacher) {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ El usuario autenticado no tiene un catedrático asociado.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // 📋 Verificar que el alumno pertenezca a un curso del catedrático
         $enrollment = \App\Models\Enrollment::where('id', $enrollmentId)
-            ->whereHas('offering', fn($q) => $q->where('teacher_id', $teacherId))
+            ->whereHas('offering', fn($q) => $q->where('teacher_id', $teacher->id))
             ->first();
 
         if (!$enrollment) {
@@ -363,7 +386,7 @@ class TeacherController extends Controller
             'final' => 'nullable|numeric|min:0|max:40',
         ]);
 
-        // Reglas de secuencia (como en tu modal)
+        // ⚠️ Validaciones de secuencia
         if (!is_null($data['parcial2'] ?? null) && is_null($data['parcial1'] ?? null)) {
             return response()->json(['message' => '⚠ No puedes asignar Parcial 2 sin Parcial 1.'], 422);
         }
@@ -371,7 +394,7 @@ class TeacherController extends Controller
             return response()->json(['message' => '⚠ No puedes asignar Final sin los parciales previos.'], 422);
         }
 
-        // Cálculo de total y estado
+        // 🧮 Cálculo de total y estado
         $total = ($data['parcial1'] ?? 0) + ($data['parcial2'] ?? 0) + ($data['final'] ?? 0);
         $estado = $total >= 70 ? 'Aprobado' : ($total >= 60 ? 'Recuperación' : 'Reprobado');
 
@@ -392,11 +415,20 @@ class TeacherController extends Controller
      * ====================================================== */
     public function courseStudents(Request $request, $offeringId)
     {
-        $teacherId = $request->user()->teacher_id ?? null;
+        // 🔍 Buscar el registro del catedrático vinculado al usuario autenticado
+        $teacher = Teacher::where('user_id', $request->user()->id)->first();
 
+        if (!$teacher) {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ El usuario autenticado no tiene un catedrático asociado.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // 📋 Buscar el curso del catedrático
         $offering = Offering::with(['course', 'branch', 'enrollments.student.user', 'enrollments.grade'])
             ->where('id', $offeringId)
-            ->where('teacher_id', $teacherId)
+            ->where('teacher_id', $teacher->id)
             ->first();
 
         if (!$offering) {
@@ -406,6 +438,7 @@ class TeacherController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // 👩‍🎓 Lista de alumnos
         $students = $offering->enrollments->map(fn($e) => [
             'id' => $e->student->id,
             'nombre' => $e->student->nombres,
@@ -419,6 +452,7 @@ class TeacherController extends Controller
             'total' => $e->grade->total ?? null,
         ]);
 
+        // ✅ Respuesta final
         return response()->json([
             'success' => true,
             'message' => 'Lista de alumnos cargada correctamente.',
@@ -431,4 +465,5 @@ class TeacherController extends Controller
             'data' => $students,
         ], Response::HTTP_OK);
     }
+
 }

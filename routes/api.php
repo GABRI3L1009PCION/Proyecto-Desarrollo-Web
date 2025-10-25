@@ -58,6 +58,7 @@ Route::prefix('v1')->group(function () {
 // Panel y cursos del catedrático autenticado
         Route::prefix('teacher')->group(function () {
             Route::get('dashboard', [TeacherController::class, 'dashboard']);
+
             Route::get('courses', [TeacherController::class, 'courses']);
             Route::get('course/{offeringId}/students', [TeacherController::class, 'courseStudents']); // 👈 NUEVO
             Route::get('course/{offeringId}/grades', [TeacherController::class, 'courseGrades']); // 👈 NUEVO

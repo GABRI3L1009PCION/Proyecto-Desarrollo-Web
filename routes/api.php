@@ -11,7 +11,7 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\UserController; // 👈 [AÑADIDO] Importar UserController
+use App\Http\Controllers\UserController;
 
 Route::prefix('v1')->group(function () {
     // --------------------
@@ -36,9 +36,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
         // --------------------
-        // Usuarios (¡NUEVO!)
+        // Usuarios
         // --------------------
-        Route::apiResource('users', UserController::class); // 👈 [AÑADIDO] Ruta para Usuarios
+        Route::apiResource('users', UserController::class);
 
         // --------------------
         // Sucursales
@@ -50,21 +50,26 @@ Route::prefix('v1')->group(function () {
         // --------------------
         Route::apiResource('students', StudentController::class);
 
-        // --------------------
-// Catedráticos
-// --------------------
-        Route::apiResource('teachers', TeacherController::class);
-
-// Panel y cursos del catedrático autenticado
-        Route::prefix('teacher')->group(function () {
-            Route::get('dashboard', [TeacherController::class, 'dashboard']);
-
-            Route::get('courses', [TeacherController::class, 'courses']);
-            Route::get('course/{offeringId}/students', [TeacherController::class, 'courseStudents']); // 👈 NUEVO
-            Route::get('course/{offeringId}/grades', [TeacherController::class, 'courseGrades']); // 👈 NUEVO
-            Route::post('grade/{enrollmentId}', [TeacherController::class, 'gradeStudent']); // 👈
+        // 🧩 NUEVO BLOQUE: Panel del estudiante autenticado
+        Route::prefix('student')->group(function () {
+            Route::get('dashboard',   [StudentController::class, 'dashboardStudent']);   // Panel principal
+            Route::get('courses',     [StudentController::class, 'myCourses']);          // Mis cursos
+            Route::get('performance', [StudentController::class, 'performance']);        // Desempeño general
         });
 
+        // --------------------
+        // Catedráticos
+        // --------------------
+        Route::apiResource('teachers', TeacherController::class);
+
+        // Panel y cursos del catedrático autenticado
+        Route::prefix('teacher')->group(function () {
+            Route::get('dashboard', [TeacherController::class, 'dashboard']);
+            Route::get('courses', [TeacherController::class, 'courses']);
+            Route::get('course/{offeringId}/students', [TeacherController::class, 'courseStudents']);
+            Route::get('course/{offeringId}/grades', [TeacherController::class, 'courseGrades']);
+            Route::post('grade/{enrollmentId}', [TeacherController::class, 'gradeStudent']);
+        });
 
         // --------------------
         // Cursos y Ofertas
@@ -88,7 +93,6 @@ Route::prefix('v1')->group(function () {
             Route::get('students/by-branch', [ReportController::class, 'studentsByBranch']);
             Route::get('stats/by-grade',     [ReportController::class, 'statsByGrade']);
 
-
             // Exportaciones a Excel
             Route::get('export/students', [ReportController::class, 'exportStudents']);
             Route::get('export/grades',   [ReportController::class, 'exportGrades']);
@@ -100,10 +104,8 @@ Route::prefix('v1')->group(function () {
         Route::prefix('search')->group(function () {
             Route::get('students',    [SearchController::class, 'students']);
             Route::get('enrollments', [SearchController::class, 'enrollments']);
-
             Route::get('students/unlinked-users', [StudentController::class, 'unlinkedUsers']);
-            Route::get('/teachers/unlinked-users', [TeacherController::class, 'unlinkedUsers']);
+            Route::get('teachers/unlinked-users', [TeacherController::class, 'unlinkedUsers']);
         });
     });
 });
-

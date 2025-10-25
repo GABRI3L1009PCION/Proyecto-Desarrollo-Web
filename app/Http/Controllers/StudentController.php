@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\User;
+use App\Models\Enrollment;
+use App\Models\Grade;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class StudentController extends Controller
 {
@@ -164,5 +167,117 @@ class StudentController extends Controller
             'success' => true,
             'message' => '🗑️ Estudiante eliminado exitosamente.'
         ], Response::HTTP_OK);
+    }
+
+    /* ======================================================
+     *  🧩 FUNCIONES PARA EL PANEL DEL ESTUDIANTE
+     * ====================================================== */
+
+    /** 🏠 Dashboard del estudiante */
+    public function dashboardStudent()
+    {
+        $student = Student::where('user_id', Auth::id())->with('branch')->firstOrFail();
+
+        $enrollments = Enrollment::with(['offering.course', 'grade'])
+            ->where('student_id', $student->id)
+            ->get();
+
+        $promedio = round($enrollments->avg('grade.total'), 2);
+        $aprobados = $enrollments->where('grade.estado', 'Aprobado')->count();
+        $recuperacion = $enrollments->where('grade.estado', 'Recuperación')->count();
+        $reprobados = $enrollments->where('grade.estado', 'Reprobado')->count();
+
+        $notasRecientes = Grade::with(['enrollment.offering.course'])
+            ->whereIn('enrollment_id', $enrollments->pluck('id'))
+            ->orderByDesc('updated_at')
+            ->take(3)
+            ->get()
+            ->map(fn($g) => [
+                'curso' => $g->enrollment->offering->course->nombre,
+                'parcial1' => $g->parcial1,
+                'parcial2' => $g->parcial2,
+                'final' => $g->final,
+                'total' => $g->total,
+                'estado' => $g->estado,
+                'fecha' => $g->updated_at?->format('d/m/Y H:i'),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'nombre' => $student->nombres,
+                'sucursal' => $student->branch->nombre,
+                'grado' => $student->grade,
+                'nivel' => $student->level,
+                'promedio' => $promedio,
+                'aprobados' => $aprobados,
+                'recuperacion' => $recuperacion,
+                'reprobados' => $reprobados,
+                'notas_recientes' => $notasRecientes,
+            ],
+        ]);
+    }
+
+    /** 📚 Cursos inscritos del estudiante */
+    public function myCourses()
+    {
+        $student = Student::where('user_id', Auth::id())->firstOrFail();
+
+        $courses = Enrollment::with([
+            'offering.course',
+            'offering.teacher.user',
+            'offering.branch',
+            'grade'
+        ])
+            ->where('student_id', $student->id)
+            ->get()
+            ->map(fn($e) => [
+                'id' => $e->id,
+                'curso' => $e->offering->course->nombre,
+                'catedratico' => $e->offering->teacher->user->name,
+                'nivel' => $e->offering->level,
+                'grado' => $e->offering->grade,
+                'sucursal' => $e->offering->branch->nombre,
+                'parcial1' => $e->grade->parcial1 ?? 0,
+                'parcial2' => $e->grade->parcial2 ?? 0,
+                'final' => $e->grade->final ?? 0,
+                'total' => $e->grade->total ?? 0,
+                'estado' => $e->grade->estado ?? 'Sin calificar',
+            ]);
+
+        return response()->json(['success' => true, 'data' => $courses]);
+    }
+
+    /** 📊 Desempeño general del estudiante */
+    public function performance()
+    {
+        $student = Student::where('user_id', Auth::id())->firstOrFail();
+
+        $enrollments = Enrollment::with(['offering.course', 'grade'])
+            ->where('student_id', $student->id)
+            ->get();
+
+        $promedio = round($enrollments->avg('grade.total'), 2);
+        $aprobados = $enrollments->where('grade.estado', 'Aprobado')->count();
+        $recuperacion = $enrollments->where('grade.estado', 'Recuperación')->count();
+        $reprobados = $enrollments->where('grade.estado', 'Reprobado')->count();
+
+        $detalle = $enrollments->map(fn($e) => [
+            'curso' => $e->offering->course->nombre,
+            'catedratico' => $e->offering->teacher->user->name,
+            'total' => $e->grade->total ?? 0,
+            'estado' => $e->grade->estado ?? 'Sin calificar',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'promedio' => $promedio,
+                'aprobados' => $aprobados,
+                'recuperacion' => $recuperacion,
+                'reprobados' => $reprobados,
+                'detalle' => $detalle,
+            ],
+        ]);
     }
 }

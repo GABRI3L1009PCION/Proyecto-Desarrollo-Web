@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
-use App\Models\User; // Asegúrate de importar el modelo User
+use App\Models\User;
+use App\Models\Grade;
+use App\Models\Offering;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -12,15 +14,21 @@ class TeacherController extends Controller
     /** ======================================================
      * 📋 Listar catedráticos con sus relaciones
      * ====================================================== */
-    public function index()
+    public function index(Request $request)
     {
-        // NOTA: Para que los filtros del frontend funcionen eficientemente (búsqueda por nombre/sucursal),
-        // este método debe ser actualizado para aceptar los parámetros $request->input('q') y $request->input('branch_id'),
-        // de lo contrario, el filtrado se hará en el frontend (lo cual es menos eficiente).
+        $query = Teacher::with(['user', 'branch', 'offerings.course']);
 
-        $teachers = Teacher::with(['user', 'branch', 'offerings.course'])
-            ->orderBy('nombres')
-            ->paginate(15);
+        // 🔍 Filtros opcionales
+        if ($search = $request->input('q')) {
+            $query->where('nombres', 'like', "%{$search}%")
+                ->orWhereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"));
+        }
+
+        if ($branch = $request->input('branch_id')) {
+            $query->where('branch_id', $branch);
+        }
+
+        $teachers = $query->orderBy('nombres')->paginate(15);
 
         return response()->json([
             'success' => true,
@@ -37,12 +45,9 @@ class TeacherController extends Controller
 
     /** ======================================================
      * 🔍 Usuarios con rol "catedrático" sin vincular a Teacher
-     * * Esta función es necesaria para poblar el dropdown/selector de "Usuario Asociado"
-     * en el formulario de creación de catedráticos.
      * ====================================================== */
     public function unlinkedUsers()
     {
-        // Asegura que solo trae usuarios con el rol 'catedratico' que NO tienen un registro en la tabla 'teachers'
         $users = User::where('role', 'catedratico')
             ->whereDoesntHave('teacher')
             ->select('id', 'name', 'email')
@@ -134,6 +139,195 @@ class TeacherController extends Controller
         return response()->json([
             'success' => true,
             'message' => '🗑️ Catedrático eliminado exitosamente.'
+        ], Response::HTTP_OK);
+    }
+
+    /** ======================================================
+     * 📊 DASHBOARD DEL CATEDRÁTICO (Resumen)
+     * ====================================================== */
+    public function dashboard(Request $request)
+    {
+        $teacherId = $request->user()->teacher_id ?? null;
+
+        if (!$teacherId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El usuario autenticado no tiene un catedrático asociado.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $teacher = Teacher::with([
+            'offerings.course:id,nombre',
+            'offerings.branch:id,nombre',
+            'offerings.enrollments:id,offering_id',
+        ])->find($teacherId);
+
+        if (!$teacher) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Catedrático no encontrado.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $totalCursos = $teacher->offerings->count();
+        $totalAlumnos = $teacher->offerings->sum(fn($o) => $o->enrollments->count());
+
+        $promedioGeneral = Grade::whereHas('enrollment.offering', function ($q) use ($teacherId) {
+            $q->where('teacher_id', $teacherId);
+        })->avg('total');
+
+        $promedioGeneral = $promedioGeneral ? round($promedioGeneral, 2) : 0;
+
+        $cursos = $teacher->offerings->map(fn($o) => [
+            'id' => $o->id,
+            'curso' => $o->course->nombre ?? '—',
+            'grado' => $o->grade,
+            'nivel' => $o->level,
+            'sucursal' => $o->branch->nombre ?? '—',
+            'alumnos_inscritos' => $o->enrollments->count(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Panel del catedrático cargado correctamente.',
+            'data' => [
+                'estadisticas' => [
+                    'totalCursos' => $totalCursos,
+                    'totalAlumnos' => $totalAlumnos,
+                    'promedioGeneral' => $promedioGeneral,
+                ],
+                'cursos' => $cursos,
+            ],
+        ], Response::HTTP_OK);
+    }
+
+    /** ======================================================
+     * 🎓 LISTA DE CURSOS FILTRADOS (para "Mis Cursos")
+     * ====================================================== */
+    public function courses(Request $request)
+    {
+        $teacherId = $request->user()->teacher_id ?? null;
+
+        if (!$teacherId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El usuario autenticado no tiene un catedrático asociado.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $query = \App\Models\Offering::with(['course', 'branch', 'enrollments'])
+            ->where('teacher_id', $teacherId);
+
+        // 🔍 Búsqueda global
+        if ($search = $request->input('q')) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('course', fn($qc) => $qc->where('nombre', 'like', "%{$search}%"))
+                    ->orWhere('grade', 'like', "%{$search}%")
+                    ->orWhere('level', 'like', "%{$search}%")
+                    ->orWhere('ciclo', 'like', "%{$search}%");
+            });
+        }
+
+        // 🎯 Filtros
+        if ($grado = $request->input('grado')) $query->where('grade', $grado);
+        if ($nivel = $request->input('nivel')) $query->where('level', $nivel);
+        if ($ciclo = $request->input('ciclo')) $query->where('ciclo', $ciclo);
+        if ($cupo = $request->input('cupo')) $query->where('cupo', $cupo);
+
+        // ⚙️ Ordenamiento
+        switch ($request->input('orden', 'recientes')) {
+            case 'antiguos':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'az':
+                $query->orderBy(
+                    \App\Models\Course::select('nombre')
+                        ->whereColumn('courses.id', 'offerings.course_id')
+                );
+                break;
+            case 'za':
+                $query->orderByDesc(
+                    \App\Models\Course::select('nombre')
+                        ->whereColumn('courses.id', 'offerings.course_id')
+                );
+                break;
+            case 'mas_alumnos':
+                $query->withCount('enrollments')->orderBy('enrollments_count', 'desc');
+                break;
+            case 'menos_alumnos':
+                $query->withCount('enrollments')->orderBy('enrollments_count', 'asc');
+                break;
+            default:
+                $query->orderBy('created_at', 'desc');
+        }
+
+        $courses = $query->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lista de cursos asignados cargada correctamente.',
+            'count'   => $courses->total(),
+            'data'    => $courses->map(fn($o) => [
+                'id' => $o->id,
+                'curso' => $o->course->nombre ?? '—',
+                'grado' => $o->grade,
+                'nivel' => $o->level,
+                'sucursal' => $o->branch->nombre ?? '—',
+                'anio' => $o->anio,
+                'ciclo' => $o->ciclo,
+                'cupo' => $o->cupo,
+                'alumnos' => $o->enrollments->count(),
+            ]),
+            'pagination' => [
+                'current_page' => $courses->currentPage(),
+                'last_page' => $courses->lastPage(),
+                'per_page' => $courses->perPage(),
+            ],
+        ], Response::HTTP_OK);
+    }
+
+    /** ======================================================
+     * 👩‍🎓 LISTA DE ALUMNOS DE UN CURSO (Ver alumnos)
+     * ====================================================== */
+    public function courseStudents(Request $request, $offeringId)
+    {
+        $teacherId = $request->user()->teacher_id ?? null;
+
+        $offering = Offering::with(['course', 'branch', 'enrollments.student.user', 'enrollments.grade'])
+            ->where('id', $offeringId)
+            ->where('teacher_id', $teacherId)
+            ->first();
+
+        if (!$offering) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Curso no encontrado o no pertenece al catedrático autenticado.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $students = $offering->enrollments->map(fn($e) => [
+            'id' => $e->student->id,
+            'nombre' => $e->student->nombres,
+            'email' => $e->student->user->email ?? null,
+            'grado' => $e->student->grade,
+            'nivel' => $e->student->level,
+            'estado' => $e->status,
+            'parcial1' => $e->grade->parcial1 ?? null,
+            'parcial2' => $e->grade->parcial2 ?? null,
+            'final' => $e->grade->final ?? null,
+            'total' => $e->grade->total ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lista de alumnos cargada correctamente.',
+            'curso' => [
+                'nombre' => $offering->course->nombre,
+                'grado' => $offering->grade,
+                'nivel' => $offering->level,
+                'sucursal' => $offering->branch->nombre,
+            ],
+            'data' => $students,
         ], Response::HTTP_OK);
     }
 }

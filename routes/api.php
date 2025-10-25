@@ -51,9 +51,18 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('students', StudentController::class);
 
         // --------------------
-        // Catedráticos
-        // --------------------
+// Catedráticos
+// --------------------
         Route::apiResource('teachers', TeacherController::class);
+
+// Panel y cursos del catedrático autenticado
+        Route::prefix('teacher')->group(function () {
+            Route::get('dashboard', [TeacherController::class, 'dashboard']);
+            Route::get('courses', [TeacherController::class, 'courses']);
+            Route::get('course/{offeringId}/students', [TeacherController::class, 'courseStudents']); // 👈 NUEVO
+
+        });
+
 
         // --------------------
         // Cursos y Ofertas

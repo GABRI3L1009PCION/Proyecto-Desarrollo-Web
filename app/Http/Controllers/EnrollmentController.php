@@ -22,15 +22,39 @@ class EnrollmentController extends Controller
         ]);
 
         // === 🧩 FILTROS ===
+
+        // 1. FILTRO POR ESTADO
         $query->when($request->estado, fn($q) =>
         $q->where('status', $request->estado)
         );
 
+        // 2. FILTRO POR CURSO ID
         $query->when($request->curso_id, fn($q) =>
         $q->whereHas('offering.course', fn($qc) =>
         $qc->where('id', $request->curso_id)
         )
         );
+
+        // 🔑 3. FILTRO POR SUCURSAL ID (branch_id)
+        $query->when($request->branch_id, fn($q) =>
+        $q->whereHas('offering.branch', fn($qb) =>
+        $qb->where('id', $request->branch_id)
+        )
+        );
+
+        // 🔑 4. BÚSQUEDA GENERAL (q) por Nombre de Alumno o Nombre de Curso
+        if ($q = $request->input('q')) {
+            $query->where(function ($sq) use ($q) {
+                // Busca en el nombre del usuario (alumno)
+                $sq->whereHas('student.user', fn($qu) =>
+                $qu->where('name', 'like', "%{$q}%")
+                )
+                    // OR Busca en el nombre del curso
+                    ->orWhereHas('offering.course', fn($qc) =>
+                    $qc->where('nombre', 'like', "%{$q}%")
+                    );
+            });
+        }
 
         // === 🔃 ORDENAMIENTO ===
         switch ($request->input('sort', 'latest')) {
@@ -53,6 +77,8 @@ class EnrollmentController extends Controller
                 'filters' => [
                     'estado'   => $request->estado,
                     'curso_id' => $request->curso_id,
+                    'branch_id' => $request->branch_id, // Añadido
+                    'q'        => $request->q,          // Añadido
                     'sort'     => $request->sort,
                     'limit'    => $limit,
                 ],
@@ -72,6 +98,8 @@ class EnrollmentController extends Controller
             'filters' => [
                 'estado'   => $request->estado,
                 'curso_id' => $request->curso_id,
+                'branch_id' => $request->branch_id, // Añadido
+                'q'        => $request->q,          // Añadido
                 'sort'     => $request->sort,
             ],
             'pagination' => [

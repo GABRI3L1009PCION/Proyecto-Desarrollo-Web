@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class GradoNivelExport implements FromCollection, WithHeadings, ShouldAutoSize
+class GradoNivelExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles
 {
     protected $tipo;
 
@@ -19,23 +21,23 @@ class GradoNivelExport implements FromCollection, WithHeadings, ShouldAutoSize
 
     public function collection()
     {
-        // Dependiendo del tipo que venga del Blade
+        // === Selección según tipo recibido desde el Blade ===
         if ($this->tipo === 'grado') {
-            return Student::select('grade', DB::raw('COUNT(*) as total'))
+            return Student::select('grade as Grado', DB::raw('COUNT(*) as Total'))
                 ->groupBy('grade')
                 ->orderBy('grade')
                 ->get();
         }
 
         if ($this->tipo === 'nivel') {
-            return Student::select('level', DB::raw('COUNT(*) as total'))
+            return Student::select('level as Nivel', DB::raw('COUNT(*) as Total'))
                 ->groupBy('level')
                 ->orderBy('level')
                 ->get();
         }
 
-        // Por defecto, exportar por grado y nivel
-        return Student::select('grade', 'level', DB::raw('COUNT(*) as total'))
+        // Por defecto: grado + nivel
+        return Student::select('grade as Grado', 'level as Nivel', DB::raw('COUNT(*) as Total'))
             ->groupBy('grade', 'level')
             ->orderBy('grade')
             ->orderBy('level')
@@ -44,8 +46,37 @@ class GradoNivelExport implements FromCollection, WithHeadings, ShouldAutoSize
 
     public function headings(): array
     {
-        if ($this->tipo === 'grado') return ['Grado', 'Total de Alumnos'];
-        if ($this->tipo === 'nivel') return ['Nivel', 'Total de Alumnos'];
-        return ['Grado', 'Nivel', 'Total de Alumnos'];
+        return match ($this->tipo) {
+            'grado' => ['Grado', 'Total de Alumnos'],
+            'nivel' => ['Nivel', 'Total de Alumnos'],
+            default => ['Grado', 'Nivel', 'Total de Alumnos'],
+        };
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        // === 1️⃣ Estilo de encabezados ===
+        $sheet->getStyle('A1:' . $sheet->getHighestColumn() . '1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 12],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+            'fill' => [
+                'fillType' => 'solid',
+                'color' => ['rgb' => 'E0E6F8'], // Azul claro
+            ],
+        ]);
+
+        // === 2️⃣ Agrega margen de ancho extra ===
+        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+            $currentWidth = $sheet->getColumnDimension($col)->getWidth();
+            $sheet->getColumnDimension($col)->setWidth($currentWidth + 3);
+        }
+
+        // === 3️⃣ Centra valores numéricos ===
+        $lastRow = $sheet->getHighestRow();
+        $sheet->getStyle("A2:" . $sheet->getHighestColumn() . $lastRow)
+            ->getAlignment()
+            ->setHorizontal('center');
+
+        return [];
     }
 }

@@ -6,8 +6,10 @@ use App\Models\Grade;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class NotasExport implements FromCollection, WithHeadings, ShouldAutoSize
+class NotasExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles
 {
     protected $inicio;
     protected $fin;
@@ -44,21 +46,63 @@ class NotasExport implements FromCollection, WithHeadings, ShouldAutoSize
             ->orderBy('grades.updated_at', 'desc')
             ->get()
             ->map(fn($g) => [
-                'Curso'   => $g->enrollment->offering->course->nombre ?? 'Sin curso',
-                'Grado'   => $g->enrollment->student->grade ?? 'N/A',
-                'Nivel'   => $g->enrollment->student->level ?? 'N/A',
-                'Alumno'  => $g->enrollment->student->nombres ?? 'Desconocido',
-                'P1'      => $g->parcial1 ?? '-',
-                'P2'      => $g->parcial2 ?? '-',
-                'Final'   => $g->final ?? '-',
-                'Total'   => $g->total ?? '-',
-                'Estado'  => $g->estado ?? '-',
-                'Fecha'   => optional($g->updated_at)->format('d/m/Y H:i'),
+                'Curso'  => $g->enrollment->offering->course->nombre ?? 'Sin curso',
+                'Grado'  => $g->enrollment->student->grade ?? 'N/A',
+                'Nivel'  => $g->enrollment->student->level ?? 'N/A',
+                'Alumno' => $g->enrollment->student->nombres ?? 'Desconocido',
+                'P1'     => $g->parcial1 ?? '-',
+                'P2'     => $g->parcial2 ?? '-',
+                'Final'  => $g->final ?? '-',
+                'Total'  => $g->total ?? '-',
+                'Estado' => ucfirst($g->estado ?? 'Sin estado'),
+                'Fecha'  => optional($g->updated_at)->format('d/m/Y H:i'),
             ]);
     }
 
     public function headings(): array
     {
         return ['Curso', 'Grado', 'Nivel', 'Alumno', 'P1', 'P2', 'Final', 'Total', 'Estado', 'Fecha'];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        // === 1️⃣ Estilo para encabezados ===
+        $sheet->getStyle('A1:' . $sheet->getHighestColumn() . '1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 12],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+            'fill' => [
+                'fillType' => 'solid',
+                'color' => ['rgb' => 'E0E6F8'], // Azul suave uniforme
+            ],
+        ]);
+
+        // === 2️⃣ Ajuste de ancho (ShouldAutoSize + margen adicional) ===
+        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+            $currentWidth = $sheet->getColumnDimension($col)->getWidth();
+            $sheet->getColumnDimension($col)->setWidth($currentWidth + 4);
+        }
+
+        // === 3️⃣ Centramos columnas numéricas y de estado ===
+        $lastRow = $sheet->getHighestRow();
+        $sheet->getStyle("E2:I{$lastRow}")
+            ->getAlignment()
+            ->setHorizontal('center');
+
+        // === 4️⃣ Formato para fecha (columna J) ===
+        $sheet->getStyle("J2:J{$lastRow}")
+            ->getAlignment()
+            ->setHorizontal('center');
+
+        // === 5️⃣ Bordes suaves y consistentes ===
+        $sheet->getStyle('A1:' . $sheet->getHighestColumn() . $lastRow)->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => 'thin',
+                    'color' => ['rgb' => 'D0D0D0'],
+                ],
+            ],
+        ]);
+
+        return [];
     }
 }

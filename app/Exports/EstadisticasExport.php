@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class EstadisticasExport implements FromCollection, WithHeadings, ShouldAutoSize
+class EstadisticasExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles
 {
     public function collection()
     {
@@ -27,5 +29,20 @@ class EstadisticasExport implements FromCollection, WithHeadings, ShouldAutoSize
     public function headings(): array
     {
         return ['Grado', 'Promedio General'];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        // Centrar encabezados y darles un poco de estilo
+        $sheet->getStyle('A1:B1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:B1')->getAlignment()->setHorizontal('center');
+
+        // Ajustar manualmente un poco más las columnas si lo deseás
+        foreach (range('A', $sheet->getHighestColumn()) as $col) {
+            $currentWidth = $sheet->getColumnDimension($col)->getWidth();
+            $sheet->getColumnDimension($col)->setWidth($currentWidth + 3);
+        }
+
+        return [];
     }
 }

@@ -74,6 +74,9 @@ Route::prefix('v1')->group(function () {
             Route::get('students/by-date',  [ReportController::class, 'studentsByDate']);
             Route::get('students/by-grade', [ReportController::class, 'studentsByGrade']);
             Route::get('grades/by-course',  [ReportController::class, 'gradesByCourse']);
+            Route::get('students/by-branch', [ReportController::class, 'studentsByBranch']);
+            Route::get('stats/by-grade',     [ReportController::class, 'statsByGrade']);
+
 
             // Exportaciones a Excel
             Route::get('export/students', [ReportController::class, 'exportStudents']);

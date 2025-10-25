@@ -9,8 +9,9 @@ use Illuminate\Http\Response;
 
 class EnrollmentController extends Controller
 {
-    // GET /enrollments
-    // AÑADIDO: Lógica para manejar 'limit' y 'sort'
+    // ======================================================
+    // 📋 GET /enrollments — Listado con filtros, orden y límite
+    // ======================================================
     public function index(Request $request)
     {
         $query = Enrollment::with([
@@ -20,7 +21,18 @@ class EnrollmentController extends Controller
             'offering.branch'
         ]);
 
-        // 1. ORDENAMIENTO (Por defecto: más recientes)
+        // === 🧩 FILTROS ===
+        $query->when($request->estado, fn($q) =>
+        $q->where('status', $request->estado)
+        );
+
+        $query->when($request->curso_id, fn($q) =>
+        $q->whereHas('offering.course', fn($qc) =>
+        $qc->where('id', $request->curso_id)
+        )
+        );
+
+        // === 🔃 ORDENAMIENTO ===
         switch ($request->input('sort', 'latest')) {
             case 'oldest':
                 $query->orderBy('fecha', 'asc');
@@ -31,31 +43,50 @@ class EnrollmentController extends Controller
                 break;
         }
 
-        // 2. LÍMITE (Usado por el dashboard de Secretaría)
+        // === 📏 LÍMITE (Dashboard rápido) ===
         if ($limit = $request->input('limit')) {
             $enrollments = $query->take($limit)->get();
-            $totalCount = Enrollment::count(); // Obtener el conteo total para el dashboard
+            $totalCount = Enrollment::count();
 
             return response()->json([
                 'success' => true,
-                'total' => $totalCount, // Conteo total para el StatCard
+                'filters' => [
+                    'estado'   => $request->estado,
+                    'curso_id' => $request->curso_id,
+                    'sort'     => $request->sort,
+                    'limit'    => $limit,
+                ],
+                'pagination' => [
+                    'total' => $totalCount,
+                    'count' => $enrollments->count(),
+                ],
                 'data' => $enrollments,
             ], Response::HTTP_OK);
         }
 
-        // 3. PAGINACIÓN ESTÁNDAR (Si no hay límite)
-        $paginatedEnrollments = $query->paginate(10);
+        // === 📄 PAGINACIÓN COMPLETA ===
+        $paginated = $query->paginate(10);
 
         return response()->json([
             'success' => true,
-            'total' => $paginatedEnrollments->total(), // Total para el StatCard
-            'data' => $paginatedEnrollments->items(),
-            'current_page' => $paginatedEnrollments->currentPage(),
-            'last_page' => $paginatedEnrollments->lastPage(),
+            'filters' => [
+                'estado'   => $request->estado,
+                'curso_id' => $request->curso_id,
+                'sort'     => $request->sort,
+            ],
+            'pagination' => [
+                'total'         => $paginated->total(),
+                'current_page'  => $paginated->currentPage(),
+                'last_page'     => $paginated->lastPage(),
+                'per_page'      => $paginated->perPage(),
+            ],
+            'data' => $paginated->items(),
         ], Response::HTTP_OK);
     }
 
-    // POST /enrollments
+    // ======================================================
+    // ➕ POST /enrollments — Crear inscripción
+    // ======================================================
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -64,16 +95,17 @@ class EnrollmentController extends Controller
             'status'      => 'nullable|in:activa,retirada,finalizada',
         ]);
 
-        // Evitar duplicados
-        $exists = Enrollment::where('student_id', $data['student_id'])
+        // ⚠️ Evitar duplicados
+        if (Enrollment::where('student_id', $data['student_id'])
             ->where('offering_id', $data['offering_id'])
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['message' => 'El estudiante ya está inscrito en esta oferta'], 422);
+            ->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El estudiante ya está inscrito en esta oferta'
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // Crear inscripción
+        // ✅ Crear inscripción
         $enrollment = Enrollment::create([
             'student_id'  => $data['student_id'],
             'offering_id' => $data['offering_id'],
@@ -81,7 +113,7 @@ class EnrollmentController extends Controller
             'fecha'       => now(),
         ]);
 
-        // 🔹 Reducir cupo si es válido
+        // 🔻 Reducir cupo si aplica
         $offering = Offering::find($data['offering_id']);
         if ($offering && $offering->cupo > 0) {
             $offering->decrement('cupo');
@@ -90,19 +122,29 @@ class EnrollmentController extends Controller
         return response()->json([
             'success'    => true,
             'message'    => 'Inscripción registrada correctamente',
-            'enrollment' => $enrollment->load('student.user', 'offering.course', 'offering.branch'),
+            'data'       => $enrollment->load('student.user', 'offering.course', 'offering.branch'),
         ], Response::HTTP_CREATED);
     }
 
-    // GET /enrollments/{id}
+    // ======================================================
+    // 🔍 GET /enrollments/{id} — Mostrar inscripción
+    // ======================================================
     public function show(Enrollment $enrollment)
     {
-        return response()->json(
-            $enrollment->load(['student.user', 'offering.course', 'offering.teacher.user', 'offering.branch'])
-        );
+        return response()->json([
+            'success' => true,
+            'data' => $enrollment->load([
+                'student.user',
+                'offering.course',
+                'offering.teacher.user',
+                'offering.branch'
+            ])
+        ], Response::HTTP_OK);
     }
 
-    // PUT/PATCH /enrollments/{id}
+    // ======================================================
+    // ✏️ PUT/PATCH /enrollments/{id} — Actualizar estado
+    // ======================================================
     public function update(Request $request, Enrollment $enrollment)
     {
         $data = $request->validate([
@@ -112,16 +154,12 @@ class EnrollmentController extends Controller
         $oldStatus = $enrollment->status;
         $enrollment->update($data);
 
-        // 🔹 Manejar cupos según cambio de estado
+        // 🔄 Ajuste de cupos según transición
         $offering = Offering::find($enrollment->offering_id);
-
         if ($offering) {
-            // Si pasa de activa → retirada/finalizada → liberar cupo
             if (in_array($data['status'], ['retirada', 'finalizada']) && $oldStatus === 'activa') {
                 $offering->increment('cupo');
-            }
-            // Si pasa de retirada/finalizada → activa → ocupar cupo
-            elseif ($data['status'] === 'activa' && in_array($oldStatus, ['retirada', 'finalizada']) && $offering->cupo > 0) {
+            } elseif ($data['status'] === 'activa' && in_array($oldStatus, ['retirada', 'finalizada']) && $offering->cupo > 0) {
                 $offering->decrement('cupo');
             }
         }
@@ -129,14 +167,15 @@ class EnrollmentController extends Controller
         return response()->json([
             'success'    => true,
             'message'    => 'Estado de la inscripción actualizado correctamente',
-            'enrollment' => $enrollment->load('student.user', 'offering.course', 'offering.branch'),
-        ]);
+            'data'       => $enrollment->load('student.user', 'offering.course', 'offering.branch'),
+        ], Response::HTTP_OK);
     }
 
-    // DELETE /enrollments/{id}
+    // ======================================================
+    // 🗑️ DELETE /enrollments/{id} — Eliminar inscripción
+    // ======================================================
     public function destroy(Enrollment $enrollment)
     {
-        // 🔹 Restaurar cupo antes de eliminar
         $offering = Offering::find($enrollment->offering_id);
         if ($offering) {
             $offering->increment('cupo');

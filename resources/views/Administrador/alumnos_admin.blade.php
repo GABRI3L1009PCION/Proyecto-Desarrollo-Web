@@ -512,11 +512,17 @@
                 const gradoF = fila.children[5].textContent;
                 const sucursalF = fila.children[6].textContent;
 
-                const visible =
-                    (!texto || nombre.includes(texto)) &&
+                // === FILTRADO GLOBAL (busca en todas las columnas) ===
+                const visible = (
+                        !texto ||
+                        Array.from(fila.children).some(td =>
+                            td.textContent.toLowerCase().includes(texto)
+                        )
+                    ) &&
                     (!nivel || nivelF === nivel) &&
                     (!grado || gradoF === grado) &&
                     (!sucursal || sucursalF === sucursal);
+
 
                 fila.style.display = visible ? '' : 'none';
             });

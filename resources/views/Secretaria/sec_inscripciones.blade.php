@@ -41,13 +41,20 @@
                 <div class="header-actions">
                     <h3><i class="fa-solid fa-list"></i> Lista de inscripciones</h3>
                     <div class="actions-right">
-                        <input type="text" id="buscarInscripcion" placeholder="Buscar alumno...">
+                        <input type="text" id="buscarInscripcion" placeholder="Buscar alumno, curso o catedrático...">
 
-                        <select id="filtroEstado">
-                            <option value="">Todos los estados</option>
-                            <option value="activa">Activa</option>
-                            <option value="retirada">Retirada</option>
-                            <option value="finalizada">Finalizada</option>
+                        <select id="filtroCurso">
+                            <option value="">Todos los cursos</option>
+                            @foreach($cursos as $curso)
+                                <option value="{{ $curso->nombre }}">{{ $curso->nombre }}</option>
+                            @endforeach
+                        </select>
+                        {{-- 🔹 Filtro de grado oculto temporalmente --}}
+
+                        <select id="filtroGrado" style="display:none;">
+                            <option value="">Todos los grados</option>
+                            <option value="Novatos">Novatos</option>
+                            <option value="Expertos">Expertos</option>
                         </select>
 
                         <select id="filtroSucursal">
@@ -57,6 +64,15 @@
                             @endforeach
                         </select>
 
+                        <select id="filtroEstado">
+                            <option value="">Todos los estados</option>
+                            <option value="activa">Activa</option>
+                            <option value="retirada">Retirada</option>
+                            <option value="finalizada">Finalizada</option>
+                        </select>
+
+                        <input type="date" id="filtroFecha">
+
                         <select id="ordenInscripciones">
                             <option value="recientes">Más recientes</option>
                             <option value="antiguas">Más antiguas</option>
@@ -65,6 +81,7 @@
                         <button class="btn-new" id="btnNuevaInscripcion">
                             <i class="fa-solid fa-plus"></i> Nueva inscripción
                         </button>
+
                     </div>
                 </div>
 
@@ -287,32 +304,50 @@
             });
         });
 
-        // === FILTROS Y ORDEN ===
+        // === FILTROS Y ORDEN (ACTUALIZADO) ===
         const buscar = document.getElementById('buscarInscripcion');
-        const estado = document.getElementById('filtroEstado');
+        const curso = document.getElementById('filtroCurso');
+        const grado = document.getElementById('filtroGrado');
         const sucursal = document.getElementById('filtroSucursal');
+        const estado = document.getElementById('filtroEstado');
+        const fecha = document.getElementById('filtroFecha');
         const orden = document.getElementById('ordenInscripciones');
 
-        [buscar, estado, sucursal, orden].forEach(el =>
+        [buscar, curso, grado, sucursal, estado, fecha, orden].forEach(el =>
             el?.addEventListener('input', filtrarYOrdenar)
         );
 
         function filtrarYOrdenar() {
             const texto = buscar.value.toLowerCase();
-            const estadoF = estado.value;
+            const cursoF = curso.value.toLowerCase();
+            const gradoF = grado.value.toLowerCase();
             const sucursalF = sucursal.value;
+            const estadoF = estado.value.toLowerCase();
+            const fechaF = fecha.value;
             const ordenSeleccionado = orden.value;
             const filas = Array.from(document.querySelectorAll('#tablaInscripciones tr'));
 
             filas.forEach(fila => {
                 const alumno = fila.children[1].textContent.toLowerCase();
+                const cursoT = fila.children[2].textContent.toLowerCase();
+                const catedratico = fila.children[3].textContent.toLowerCase();
                 const sucursalT = fila.children[4].textContent;
-                const estadoT = fila.children[6].textContent.toLowerCase();
+                const fechaT = fila.children[5].textContent.trim();
+                const estadoT = fila.querySelector('.estado')?.textContent.trim().toLowerCase() || '';
+
+                // Buscar grado dentro del nombre del curso o alumno (no hay columna de grado en tabla)
+                const contieneGrado =
+                    !gradoF ||
+                    cursoT.includes(gradoF) ||
+                    alumno.includes(gradoF);
 
                 const visible =
-                    (!texto || alumno.includes(texto)) &&
+                    (!texto || [alumno, cursoT, catedratico, sucursalT, estadoT].some(t => t.includes(texto))) &&
+                    (!cursoF || cursoT.includes(cursoF)) &&
+                    contieneGrado &&
+                    (!sucursalF || sucursalT === sucursalF) &&
                     (!estadoF || estadoT === estadoF) &&
-                    (!sucursalF || sucursalT === sucursalF);
+                    (!fechaF || fechaT === fechaF);
 
                 fila.style.display = visible ? '' : 'none';
             });
@@ -329,6 +364,7 @@
             const tbody = document.getElementById('tablaInscripciones');
             visibles.forEach(f => tbody.appendChild(f));
         }
+
 
         // === CERRAR MODALES ===
         window.addEventListener('keydown', e => {

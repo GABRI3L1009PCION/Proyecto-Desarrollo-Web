@@ -287,6 +287,107 @@ class TeacherController extends Controller
     }
 
     /** ======================================================
+     * 🧾 LISTAR CALIFICACIONES DE UN CURSO
+     * ====================================================== */
+    public function courseGrades(Request $request, $offeringId)
+    {
+        $teacherId = $request->user()->teacher_id ?? null;
+
+        $offering = Offering::with([
+            'course',
+            'enrollments.student.user',
+            'enrollments.grade'
+        ])
+            ->where('id', $offeringId)
+            ->where('teacher_id', $teacherId)
+            ->first();
+
+        if (!$offering) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Curso no encontrado o no pertenece al catedrático autenticado.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Datos de notas
+        $grades = $offering->enrollments->map(fn($e) => [
+            'id' => $e->id,
+            'alumno' => $e->student->nombres ?? 'Desconocido',
+            'parcial1' => $e->grade->parcial1 ?? null,
+            'parcial2' => $e->grade->parcial2 ?? null,
+            'final' => $e->grade->final ?? null,
+            'total' => $e->grade->total ?? 0,
+            'estado' => $e->grade->estado ?? '—',
+        ]);
+
+        // Promedios y conteos
+        $promedio = round($grades->avg('total') ?? 0, 2);
+        $aprobados = $grades->where('estado', 'Aprobado')->count();
+        $recuperacion = $grades->where('estado', 'Recuperación')->count();
+        $reprobados = $grades->where('estado', 'Reprobado')->count();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Calificaciones del curso cargadas correctamente.',
+            'curso' => [
+                'nombre' => $offering->course->nombre,
+                'grado' => $offering->grade,
+                'nivel' => $offering->level,
+            ],
+            'resumen' => compact('promedio', 'aprobados', 'recuperacion', 'reprobados'),
+            'data' => $grades,
+        ], Response::HTTP_OK);
+    }
+
+    /** ======================================================
+     * ✏️ REGISTRAR O ACTUALIZAR CALIFICACIÓN DE UN ALUMNO
+     * ====================================================== */
+    public function gradeStudent(Request $request, $enrollmentId)
+    {
+        $teacherId = $request->user()->teacher_id ?? null;
+
+        $enrollment = \App\Models\Enrollment::where('id', $enrollmentId)
+            ->whereHas('offering', fn($q) => $q->where('teacher_id', $teacherId))
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El alumno no pertenece a un curso del catedrático autenticado.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $data = $request->validate([
+            'parcial1' => 'nullable|numeric|min:0|max:30',
+            'parcial2' => 'nullable|numeric|min:0|max:30',
+            'final' => 'nullable|numeric|min:0|max:40',
+        ]);
+
+        // Reglas de secuencia (como en tu modal)
+        if (!is_null($data['parcial2'] ?? null) && is_null($data['parcial1'] ?? null)) {
+            return response()->json(['message' => '⚠ No puedes asignar Parcial 2 sin Parcial 1.'], 422);
+        }
+        if (!is_null($data['final'] ?? null) && (is_null($data['parcial1'] ?? null) || is_null($data['parcial2'] ?? null))) {
+            return response()->json(['message' => '⚠ No puedes asignar Final sin los parciales previos.'], 422);
+        }
+
+        // Cálculo de total y estado
+        $total = ($data['parcial1'] ?? 0) + ($data['parcial2'] ?? 0) + ($data['final'] ?? 0);
+        $estado = $total >= 70 ? 'Aprobado' : ($total >= 60 ? 'Recuperación' : 'Reprobado');
+
+        $grade = \App\Models\Grade::updateOrCreate(
+            ['enrollment_id' => $enrollmentId],
+            array_merge($data, compact('total', 'estado'))
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ Calificación guardada correctamente.',
+            'grade' => $grade->load('enrollment.student.user', 'enrollment.offering.course'),
+        ], Response::HTTP_OK);
+    }
+
+    /** ======================================================
      * 👩‍🎓 LISTA DE ALUMNOS DE UN CURSO (Ver alumnos)
      * ====================================================== */
     public function courseStudents(Request $request, $offeringId)
